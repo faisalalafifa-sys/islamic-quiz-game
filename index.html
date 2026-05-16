@@ -178,6 +178,7 @@
         .solo-name-input input::placeholder{color:var(--text-dim)}
         #multiplayerSection{display:none}
         #soloSection{display:none}
+        .share-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;padding:12px 28px;border-radius:30px;font-weight:700;font-size:1rem;z-index:200;animation:fadeIn 0.3s ease;box-shadow:0 4px 15px rgba(0,0,0,0.3)}
 
         @media(max-width:600px){
             .logo h1{font-size:2rem} .question-text{font-size:1.15rem} .game-top-bar{justify-content:center}
@@ -283,6 +284,7 @@
                 <p class="winner-name" id="winnerName"></p>
                 <div class="results-table" id="resultsTable"></div>
                 <div class="results-buttons">
+                    <button class="btn-restart" onclick="shareResults()" style="border-color:var(--primary-light);color:var(--primary-light)">مشاركة النتيجة 📤</button>
                     <button class="btn-restart" onclick="restartSameSettings()">إعادة اللعب 🔄</button>
                     <button class="btn-new-game" onclick="newGame()">لعبة جديدة 🏠</button>
                 </div>
@@ -986,7 +988,7 @@ function startGame() {
     state.currentLevel = 0;
     state.currentPlayerIndex = 0;
     state.gameOver = false;
-    state.usedQuestions = new Set();
+    state.usedQuestions = loadUsedQuestionsFromStorage();
     state.players.forEach(p => {p.score=0;p.correct=0;p.wrong=0;p.levelReached=1;});
     showLevelIntro();
 }
@@ -1040,6 +1042,7 @@ function startLevel() {
     state.levelQuestions = pool.slice(0, level.questionsCount);
 
     state.levelQuestions.forEach(q => state.usedQuestions.add(q._hash));
+    saveUsedQuestionsToStorage();
 
     if (state.levelQuestions.length === 0) { showResults(); return; }
 
@@ -1190,6 +1193,7 @@ function goNextLevel() { removeOverlay(); state.currentLevel++; showLevelIntro()
 function retryLevel() {
     removeOverlay();
     state.levelQuestions.forEach(q => state.usedQuestions.delete(q._hash));
+    saveUsedQuestionsToStorage();
     showLevelIntro();
 }
 
@@ -1264,6 +1268,90 @@ function shuffle(arr) {
         const j = Math.floor(Math.random()*(i+1));
         [arr[i], arr[j]] = [arr[j], arr[i]];
     }
+}
+
+// ===================== SHARE RESULTS =====================
+function shareResults() {
+    const sorted = [...state.players].sort((a,b) => b.score - a.score);
+    const isSolo = state.mode === 'solo';
+    let text = '🕌 مسابقة المعرفة الإسلامية\n';
+    text += '━━━━━━━━━━━━━━━\n';
+
+    if (isSolo) {
+        const p = sorted[0];
+        const total = p.correct + p.wrong;
+        const pct = total > 0 ? Math.round((p.correct/total)*100) : 0;
+        const lvl = Math.min(p.levelReached, 10);
+        text += `🏅 ${p.name}\n`;
+        text += `📊 النتيجة: ${p.score} نقطة\n`;
+        text += `✅ الإجابات الصحيحة: ${p.correct}/${total} (${pct}%)\n`;
+        text += `🎯 المرحلة: ${lvl}/10 — ${LEVELS[lvl-1].name}\n`;
+    } else {
+        text += '🏆 النتائج:\n';
+        sorted.forEach((p, i) => {
+            const medals = ['🥇','🥈','🥉','4️⃣'];
+            const total = p.correct + p.wrong;
+            const pct = total > 0 ? Math.round((p.correct/total)*100) : 0;
+            const lvl = Math.min(p.levelReached, 10);
+            text += `${medals[i]||'•'} ${p.name}: ${p.score} نقطة (${pct}%) — المرحلة ${lvl}\n`;
+        });
+    }
+
+    text += '━━━━━━━━━━━━━━━\n';
+    text += '🎮 جرّب اللعبة:\n';
+    text += 'https://faisalalafifa-sys.github.io/islamic-quiz-game/';
+
+    if (navigator.share) {
+        navigator.share({ title: 'مسابقة المعرفة الإسلامية', text: text }).catch(() => copyToClipboard(text));
+    } else {
+        copyToClipboard(text);
+    }
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('تم نسخ النتيجة! الصقها في الواتساب 📋');
+    }).catch(() => {
+        const ta = document.createElement('textarea'); ta.value = text;
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('تم نسخ النتيجة! الصقها في الواتساب 📋');
+    });
+}
+
+function showToast(msg) {
+    const t = document.createElement('div'); t.className = 'share-toast'; t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+
+// ===================== PERSISTENT MEMORY (localStorage) =====================
+const STORAGE_KEY = 'islamic_quiz_used_questions';
+const STORAGE_EXPIRY_KEY = 'islamic_quiz_expiry';
+const EXPIRY_HOURS = 24;
+
+function loadUsedQuestionsFromStorage() {
+    try {
+        const expiry = localStorage.getItem(STORAGE_EXPIRY_KEY);
+        if (expiry && Date.now() > parseInt(expiry)) {
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(STORAGE_EXPIRY_KEY);
+            return new Set();
+        }
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (data) return new Set(JSON.parse(data));
+    } catch(e) {}
+    return new Set();
+}
+
+function saveUsedQuestionsToStorage() {
+    try {
+        const arr = [...state.usedQuestions];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+        if (!localStorage.getItem(STORAGE_EXPIRY_KEY)) {
+            localStorage.setItem(STORAGE_EXPIRY_KEY, (Date.now() + EXPIRY_HOURS * 60 * 60 * 1000).toString());
+        }
+    } catch(e) {}
 }
 
 init();
