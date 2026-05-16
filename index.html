@@ -1376,37 +1376,6 @@ questionsDB.siyasa.questions.medium.push(
 
 
 
-// ===================== GAME STATE =====================
-const playerColors = ['#2ecc71','#3498db','#e67e22','#9b59b6'];
-const diffLabels = {easy:"سهل",medium:"متوسط",hard:"صعب",expert:"خبير"};
-const diffClasses = {easy:"diff-easy",medium:"diff-medium",hard:"diff-hard",expert:"diff-expert"};
-
-let state = {
-    mode: null, playerCount: 2, players: [], selectedCategories: [], baseTimeLimit: 25,
-    currentPlayerIndex: 0, currentQuestionIndex: 0, currentLevel: 0,
-    levelQuestions: [], levelCorrectCount: 0, levelQuestionsDone: 0,
-    timer: null, timeLeft: 0, answered: false, gameOver: false,
-    usedQuestions: new Set()
-};
-
-// ===================== INIT =====================
-function init() {
-    renderPlayerInputs();
-    renderCategories();
-    document.querySelectorAll('.count-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            state.playerCount = parseInt(btn.dataset.count);
-            renderPlayerInputs();
-        });
-    });
-}
-
-function selectMode(mode) {
-    state.mode = mode;
-    document.getElementById('modeSolo').classList.toggle('selected', mode === 'solo');
-
 // More additional questions for variety
 questionsDB.quran.questions.expert.push(
 {q:"ما الآية التي ذُكر فيها زيد بن حارثة؟",options:["الأحزاب ٣٧","محمد ٤","التوبة ٤٠","الفتح ١٨"],answer:0},
@@ -1566,6 +1535,37 @@ questionsDB.siyasa.questions.hard.push(
 );
 
 
+    
+// ===================== GAME STATE =====================
+const playerColors = ['#2ecc71','#3498db','#e67e22','#9b59b6'];
+const diffLabels = {easy:"سهل",medium:"متوسط",hard:"صعب",expert:"خبير"};
+const diffClasses = {easy:"diff-easy",medium:"diff-medium",hard:"diff-hard",expert:"diff-expert"};
+
+let state = {
+    mode: null, playerCount: 2, players: [], selectedCategories: [], baseTimeLimit: 25,
+    currentPlayerIndex: 0, currentQuestionIndex: 0, currentLevel: 0,
+    levelQuestions: [], levelCorrectCount: 0, levelQuestionsDone: 0,
+    timer: null, timeLeft: 0, answered: false, gameOver: false,
+    usedQuestions: new Set()
+};
+
+// ===================== INIT =====================
+function init() {
+    renderPlayerInputs();
+    renderCategories();
+    document.querySelectorAll('.count-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.playerCount = parseInt(btn.dataset.count);
+            renderPlayerInputs();
+        });
+    });
+}
+
+function selectMode(mode) {
+    state.mode = mode;
+    document.getElementById('modeSolo').classList.toggle('selected', mode === 'solo');
     document.getElementById('modeMulti').classList.toggle('selected', mode === 'multi');
     document.getElementById('soloSection').style.display = mode === 'solo' ? 'block' : 'none';
     document.getElementById('multiplayerSection').style.display = mode === 'multi' ? 'block' : 'none';
