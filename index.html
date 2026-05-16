@@ -165,6 +165,20 @@
         .btn-new-game:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(26,107,74,0.4)}
         .confetti-piece{position:fixed;top:-20px;z-index:100;pointer-events:none}
 
+        .mode-selection{display:flex;gap:15px;margin-bottom:25px;flex-wrap:wrap}
+        .mode-card{flex:1;min-width:200px;background:var(--bg-card);border:2px solid rgba(212,168,67,0.15);border-radius:var(--radius);padding:30px 20px;text-align:center;cursor:pointer;transition:all 0.3s}
+        .mode-card:hover{border-color:var(--gold);background:var(--bg-card-hover);transform:translateY(-3px)}
+        .mode-card.selected{border-color:var(--gold);background:rgba(212,168,67,0.1)}
+        .mode-card .mode-icon{font-size:3rem;display:block;margin-bottom:10px}
+        .mode-card h3{font-size:1.2rem;margin-bottom:5px}
+        .mode-card p{color:var(--text-dim);font-size:0.85rem}
+        .solo-name-input{margin-bottom:25px}
+        .solo-name-input input{width:100%;padding:14px 16px;border-radius:10px;border:2px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--text);font-size:1.1rem;font-family:'Tajawal';text-align:center;transition:border-color 0.3s}
+        .solo-name-input input:focus{outline:none;border-color:var(--gold)}
+        .solo-name-input input::placeholder{color:var(--text-dim)}
+        #multiplayerSection{display:none}
+        #soloSection{display:none}
+
         @media(max-width:600px){
             .logo h1{font-size:2rem} .question-text{font-size:1.15rem} .game-top-bar{justify-content:center}
             .results-buttons{flex-direction:column} .settings-row{flex-direction:column} .level-number{font-size:3.5rem}
@@ -183,14 +197,37 @@
                 <p>١٠ مراحل من التحدي في السيرة النبوية والمعلومات الإسلامية</p>
             </div>
             <div class="players-setup">
-                <h2>👥 عدد اللاعبين</h2>
-                <div class="player-count">
-                    <button class="count-btn active" data-count="2">٢</button>
-                    <button class="count-btn" data-count="3">٣</button>
-                    <button class="count-btn" data-count="4">٤</button>
+                <h2>🎮 اختر نوع اللعب</h2>
+                <div class="mode-selection">
+                    <div class="mode-card" id="modeSolo" onclick="selectMode('solo')">
+                        <span class="mode-icon">🧑</span>
+                        <h3>لعب فردي</h3>
+                        <p>تحدَّ نفسك واختبر معلوماتك</p>
+                    </div>
+                    <div class="mode-card" id="modeMulti" onclick="selectMode('multi')">
+                        <span class="mode-icon">👥</span>
+                        <h3>لعب جماعي</h3>
+                        <p>تنافس مع ٢-٤ لاعبين</p>
+                    </div>
                 </div>
-                <div class="player-inputs" id="playerInputs"></div>
-                <div class="settings-row">
+
+                <div id="soloSection">
+                    <div class="solo-name-input">
+                        <input type="text" placeholder="أدخل اسمك" id="soloName" maxlength="20">
+                    </div>
+                </div>
+
+                <div id="multiplayerSection">
+                    <h2>👥 عدد اللاعبين</h2>
+                    <div class="player-count">
+                        <button class="count-btn active" data-count="2">٢</button>
+                        <button class="count-btn" data-count="3">٣</button>
+                        <button class="count-btn" data-count="4">٤</button>
+                    </div>
+                    <div class="player-inputs" id="playerInputs"></div>
+                </div>
+
+                <div class="settings-row" id="settingsRow" style="display:none">
                     <div class="setting-group">
                         <label>وقت السؤال الأساسي</label>
                         <select id="timeLimit">
@@ -201,7 +238,7 @@
                         </select>
                     </div>
                 </div>
-                <button class="btn-start" onclick="goToCategories()">ابدأ المسابقة ⚡</button>
+                <button class="btn-start" id="btnStart" onclick="goToCategories()" style="display:none">ابدأ المسابقة ⚡</button>
             </div>
         </div>
         <div class="screen" id="categoryScreen">
@@ -734,6 +771,128 @@ history: {
             {q:"ما هي مكتبة قرطبة في الأندلس وكم عدد كتبها تقريباً؟",options:["١٠ آلاف","١٠٠ ألف","٤٠٠ ألف مجلد","مليون"],answer:2},
         ]
     }
+},
+siyasah: {
+    name:"السياسة الشرعية", icon:"⚖️", description:"أسئلة عن الحكم والسياسة في الإسلام",
+    questions: {
+        easy: [
+            {q:"ما هو نظام الحكم في الإسلام؟",options:["ملكي وراثي","خلافة قائمة على الشورى","ديمقراطية غربية","لا يوجد نظام محدد"],answer:1},
+            {q:"ما معنى الشورى في الإسلام؟",options:["التصويت","التشاور في الأمور","الطاعة العمياء","الانتخابات"],answer:1},
+            {q:"من أول خليفة اختاره المسلمون بالشورى؟",options:["عمر","أبو بكر الصديق","عثمان","علي"],answer:1},
+            {q:"ما اسم المكان الذي تمت فيه مبايعة أبي بكر خليفة؟",options:["المسجد النبوي","سقيفة بني ساعدة","الكعبة","دار الأرقم"],answer:1},
+            {q:"ما واجب الحاكم المسلم تجاه الرعية؟",options:["جمع الضرائب فقط","العدل وحماية الدين والرعية","التوسع العسكري","بناء القصور"],answer:1},
+            {q:"ما معنى البيعة في الإسلام؟",options:["البيع والشراء","عقد بين الحاكم والرعية على السمع والطاعة","الانتخابات","التصويت السري"],answer:1},
+            {q:"هل يجوز الخروج على الحاكم المسلم العادل؟",options:["نعم دائماً","لا يجوز","حسب الظروف","بقرار أغلبية"],answer:1},
+            {q:"ما هي صحيفة المدينة؟",options:["رسالة للروم","وثيقة تنظم العلاقة بين سكان المدينة","معاهدة مع قريش","كتاب فقهي"],answer:1},
+            {q:"كم استمرت الخلافة الراشدة تقريباً؟",options:["١٠ سنوات","٣٠ سنة","٥٠ سنة","١٠٠ سنة"],answer:1},
+            {q:"ما أهم صفة يجب أن تتوفر في الحاكم المسلم؟",options:["الغنى","العدل والتقوى","القوة العسكرية","النسب الشريف"],answer:1},
+            {q:"من الذي قال: لو أن فاطمة بنت محمد سرقت لقطعت يدها؟",options:["أبو بكر","عمر","النبي ﷺ","علي"],answer:2},
+            {q:"ما هو ديوان المظالم؟",options:["سجل الجيش","محكمة للنظر في ظلم الحكام والولاة","سجل التجارة","ديوان الشعر"],answer:1},
+        ],
+        medium: [
+            {q:"كيف تم اختيار عمر بن الخطاب خليفة؟",options:["بالانتخاب","عيّنه أبو بكر واستشار الصحابة","ورثها","بالقوة"],answer:1},
+            {q:"كيف تم اختيار عثمان بن عفان خليفة؟",options:["بالوراثة","عينه عمر مباشرة","من خلال مجلس شورى من ستة عينهم عمر","بالانتخاب العام"],answer:2},
+            {q:"ما هو مجلس الشورى الذي عينه عمر قبل وفاته؟ كم عددهم؟",options:["٣ أشخاص","٦ أشخاص","١٠ أشخاص","١٢ شخصاً"],answer:1},
+            {q:"ما معنى أهل الحل والعقد؟",options:["التجار","العلماء وأهل الرأي الذين يختارون الحاكم ويعزلونه","القضاة فقط","الجنود"],answer:1},
+            {q:"ما هو الحسبة في الإسلام؟",options:["نظام ضريبي","الأمر بالمعروف والنهي عن المنكر وتنظيم الأسواق","نظام عسكري","نظام تعليمي"],answer:1},
+            {q:"من أول من أنشأ نظام الدواوين في الإسلام؟",options:["أبو بكر","عمر بن الخطاب","عثمان","معاوية"],answer:1},
+            {q:"ما هي وظيفة المحتسب في الدولة الإسلامية؟",options:["جمع الضرائب","مراقبة الأسواق والآداب العامة","قيادة الجيش","القضاء"],answer:1},
+            {q:"ما موقف الإسلام من حقوق غير المسلمين في الدولة الإسلامية؟",options:["لا حقوق لهم","لهم حرية العبادة وحماية أنفسهم وأموالهم","يُجبرون على الإسلام","يُطردون"],answer:1},
+            {q:"ما هو عقد الذمة؟",options:["عقد زواج","عقد يكفل لغير المسلمين الحماية والحقوق مقابل الجزية","عقد تجاري","عقد عسكري"],answer:1},
+            {q:"من أنشأ نظام العسس (الشرطة) في الإسلام؟",options:["النبي ﷺ","أبو بكر","عمر بن الخطاب","علي بن أبي طالب"],answer:2},
+            {q:"ما هو بيت المال في الإسلام؟",options:["بنك خاص","خزينة الدولة التي تُصرف على مصالح المسلمين","صندوق خيري","بيت الخليفة"],answer:1},
+            {q:"ما أول ديوان أنشأه عمر بن الخطاب؟",options:["ديوان الجيش (الجند)","ديوان القضاء","ديوان الخراج","ديوان البريد"],answer:0},
+        ],
+        hard: [
+            {q:"ما الفرق بين الخلافة والملك في الفقه السياسي الإسلامي؟",options:["لا فرق","الخلافة تقوم على الشورى والعدل والملك على الوراثة والقوة","الملك أفضل","الخلافة للعرب فقط"],answer:1},
+            {q:"ما شروط الإمامة الكبرى (الخلافة) عند أهل السنة؟",options:["النسب القرشي فقط","الإسلام والعدالة والعلم والكفاية وسلامة الحواس","الغنى والقوة","النسب العربي فقط"],answer:1},
+            {q:"ما هو كتاب الأحكام السلطانية؟ ومن مؤلفه؟",options:["كتاب فقهي لأبي حنيفة","كتاب في السياسة الشرعية للماوردي","كتاب تاريخي للطبري","كتاب حديث للبخاري"],answer:1},
+            {q:"ما رأي ابن تيمية في كتابه السياسة الشرعية؟",options:["الحكم بالقوة","إقامة العدل هي أساس الحكم الإسلامي ولو من حاكم غير مسلم","إلغاء الخلافة","الملكية الوراثية"],answer:1},
+            {q:"ما هو مبدأ المصلحة المرسلة في السياسة الشرعية؟",options:["ما يحقق المصلحة العامة دون نص خاص يدل عليه أو يمنعه","اتباع الهوى","مخالفة النصوص","القياس فقط"],answer:0},
+            {q:"ما هي نظرية العقد الاجتماعي في الفكر الإسلامي؟",options:["نظرية غربية فقط","البيعة هي شكل من العقد بين الحاكم والمحكوم","لا توجد","الطاعة المطلقة"],answer:1},
+            {q:"ما موقف الفقهاء من عزل الحاكم الظالم؟",options:["يجوز مطلقاً","خلاف: بعضهم أجازه إذا لم يؤد لفتنة أكبر","لا يجوز مطلقاً","يجب دائماً"],answer:1},
+            {q:"ما هو فقه الأقليات المسلمة؟",options:["فقه خاص بالأقليات لا علاقة له بالشريعة","اجتهادات فقهية تراعي أحوال المسلمين في البلاد غير الإسلامية","فقه مخترع","فقه الأقليات العرقية"],answer:1},
+            {q:"ما معنى سد الذرائع في السياسة الشرعية؟",options:["منع الوسائل المؤدية للمفاسد","فتح الأبواب","إباحة كل شيء","تقييد الحريات"],answer:0},
+            {q:"ما هو مبدأ دفع المفسدة مقدم على جلب المصلحة؟",options:["قاعدة اقتصادية","قاعدة فقهية تعني أن تجنب الضرر أولى من تحصيل المنفعة","قاعدة عسكرية","لا أساس لها"],answer:1},
+            {q:"ما هي نظرية التمكين في الفقه السياسي؟",options:["نظرية الحكم المطلق","تدرج في تطبيق الشريعة حسب الاستطاعة والظروف","نظرية الثورة","نظرية الديمقراطية"],answer:1},
+            {q:"من صاحب كتاب (الطرق الحكمية في السياسة الشرعية)؟",options:["الماوردي","ابن القيم","ابن تيمية","الغزالي"],answer:1},
+        ],
+        expert: [
+            {q:"ما الفرق بين السياسة الشرعية والسياسة الوضعية؟",options:["لا فرق","الشرعية مقيدة بأحكام الشريعة والوضعية من صنع البشر","الوضعية أفضل","الشرعية جامدة لا تتغير"],answer:1},
+            {q:"ما هو مبدأ الموازنة بين المصالح والمفاسد عند الشاطبي؟",options:["ترجيح المصلحة الأعلى على الأدنى ودفع المفسدة الأكبر بارتكاب الأصغر","المصلحة دائماً مقدمة","المفسدة دائماً ممنوعة","لا موازنة"],answer:0},
+            {q:"ما هي نظرية المقاصد الشرعية الخمس (الكليات الخمس)؟",options:["الصلاة والزكاة والصيام والحج والشهادة","حفظ الدين والنفس والعقل والنسل والمال","العدل والإحسان والشورى والحرية والمساواة","لا يوجد"],answer:1},
+            {q:"كيف تعامل عمر بن عبد العزيز مع مظالم بني أمية؟",options:["تجاهلها","ردّ المظالم تدريجياً وأعاد الأموال لأصحابها","صادر كل أموالهم","حاكمهم جميعاً"],answer:1},
+            {q:"ما هو منصب قاضي القضاة؟ ومن أول من تولاه؟",options:["أبو يوسف تلميذ أبي حنيفة — رئيس الجهاز القضائي","ابن تيمية","الماوردي","مالك بن أنس"],answer:0},
+            {q:"ما رأي الماوردي في شروط الخليفة المتعلقة بالاجتهاد؟",options:["لا يشترط العلم","اشترط أن يكون الخليفة مجتهداً","العلم مستحب","الجهل لا يضر"],answer:1},
+            {q:"ما هو مفهوم ولاية العهد في النظام السياسي الإسلامي؟",options:["تعيين الخليفة لمن يخلفه بعد استشارة أهل الحل والعقد","وراثة الحكم مطلقاً","انتخاب مباشر","لا يوجد في الإسلام"],answer:0},
+            {q:"ما موقف ابن خلدون من تحول الخلافة إلى ملك؟",options:["رفضه مطلقاً","اعتبره تطوراً طبيعياً للعمران البشري وانتقد الظلم فيه","أيده","لم يتطرق للموضوع"],answer:1},
+            {q:"ما هو نظام الوزارة في الفقه السياسي الإسلامي؟ كم نوعاً ذكر الماوردي؟",options:["نوع واحد","وزارة تفويض ووزارة تنفيذ","ثلاثة أنواع","أربعة أنواع"],answer:1},
+            {q:"ما مبدأ (لا طاعة لمخلوق في معصية الخالق) وأثره السياسي؟",options:["يعني أن طاعة الحاكم مشروطة بعدم مخالفة الشرع","يعني العصيان المطلق","يعني طاعة العلماء فقط","لا أثر سياسي له"],answer:0},
+            {q:"ما الفرق بين دار الإسلام ودار العهد ودار الحرب في الفقه السياسي؟",options:["تصنيف جغرافي فقط","دار الإسلام: حيث تُطبق أحكامه، دار العهد: معاهَدة، دار الحرب: لا عهد ولا أمان","تصنيف حديث","لا فرق"],answer:1},
+            {q:"ما هو مبدأ السيادة في الفكر السياسي الإسلامي؟",options:["السيادة للشعب مطلقاً","السيادة للشرع (حاكمية الله) والأمة تختار من يطبقه","السيادة للحاكم","السيادة للعلماء"],answer:1},
+        ]
+    }
+},
+aqeedah: {
+    name:"العقيدة الإسلامية", icon:"🌙", description:"أسئلة عن أصول الإيمان والتوحيد",
+    questions: {
+        easy: [
+            {q:"كم عدد أركان الإيمان؟",options:["٤","٥","٦","٧"],answer:2},
+            {q:"ما أول أركان الإيمان؟",options:["الإيمان بالملائكة","الإيمان بالله","الإيمان بالكتب","الإيمان بالأنبياء"],answer:1},
+            {q:"ما معنى التوحيد؟",options:["عبادة إلهين","إفراد الله بالعبادة","الإيمان بالملائكة","الصلاة"],answer:1},
+            {q:"كم عدد الكتب السماوية المذكورة في القرآن؟",options:["٢","٣","٤","٥"],answer:3},
+            {q:"ما هي الكتب السماوية المذكورة في القرآن؟",options:["القرآن فقط","التوراة والإنجيل والزبور والصحف والقرآن","القرآن والإنجيل","لا يوجد غير القرآن"],answer:1},
+            {q:"من هم الملائكة؟",options:["بشر صالحون","مخلوقات من نور يطيعون الله","جن مؤمنون","أرواح الأنبياء"],answer:1},
+            {q:"ما هو اليوم الآخر؟",options:["يوم الجمعة","يوم القيامة والحساب","آخر يوم في رمضان","يوم العيد"],answer:1},
+            {q:"ما معنى الإيمان بالقدر؟",options:["الاستسلام وعدم العمل","الإيمان بأن الله قدّر كل شيء مع العمل والأخذ بالأسباب","الحظ","الصدفة"],answer:1},
+            {q:"من هو خاتم الأنبياء والمرسلين؟",options:["عيسى","موسى","محمد ﷺ","إبراهيم"],answer:2},
+            {q:"ما معنى لا إله إلا الله؟",options:["لا معبود بحق إلا الله","لا خالق إلا الله فقط","الله أكبر","لا موجود إلا الله"],answer:0},
+            {q:"ما هي أنواع التوحيد الثلاثة؟",options:["توحيد الربوبية والألوهية والأسماء والصفات","توحيد الصلاة والصيام والحج","لا يوجد أنواع","توحيد القول والعمل"],answer:0},
+            {q:"ما اسم ملك الموت؟",options:["جبريل","ميكائيل","عزرائيل (ملك الموت)","إسرافيل"],answer:2},
+        ],
+        medium: [
+            {q:"ما الفرق بين توحيد الربوبية وتوحيد الألوهية؟",options:["لا فرق","الربوبية: الإيمان بأن الله الخالق الرازق. الألوهية: إفراد الله بالعبادة","الربوبية أهم","الألوهية للملائكة"],answer:1},
+            {q:"هل كان مشركو قريش يؤمنون بتوحيد الربوبية؟",options:["لا","نعم كانوا يعترفون بأن الله الخالق لكنهم أشركوا في العبادة","لم يعرفوا الله","كانوا ملحدين"],answer:1},
+            {q:"ما معنى الشرك الأكبر؟",options:["الكذب","صرف شيء من العبادة لغير الله","ارتكاب الذنوب","ترك الصلاة"],answer:1},
+            {q:"ما معنى الشرك الأصغر؟",options:["عبادة الأصنام","الرياء وحلف بغير الله ونحو ذلك","الكفر","لا يوجد شرك أصغر"],answer:1},
+            {q:"ما هي صفات الله عز وجل عند أهل السنة؟",options:["ليس لله صفات","نثبت ما أثبته الله لنفسه بلا تشبيه ولا تعطيل","نؤول كل الصفات","نشبه الله بالمخلوقات"],answer:1},
+            {q:"ما معنى الولاء والبراء في العقيدة؟",options:["الحب والكره العشوائي","موالاة المؤمنين والبراءة من الشرك لا من الناس","كره كل غير مسلم","لا يوجد في الإسلام"],answer:1},
+            {q:"ما هو الإحسان كما عرّفه النبي ﷺ في حديث جبريل؟",options:["الصدقة","أن تعبد الله كأنك تراه فإن لم تكن تراه فإنه يراك","الصلاة","الصيام"],answer:1},
+            {q:"ما هي أركان الإسلام والإيمان والإحسان؟ في أي حديث ذُكرت؟",options:["حديث جبريل المشهور","حديث الأربعين","حديث الإفك","لم تُذكر في حديث واحد"],answer:0},
+            {q:"ما حكم الإيمان بالقضاء والقدر؟",options:["مستحب","ركن من أركان الإيمان لا يصح بدونه","سنة","واجب وليس ركناً"],answer:1},
+            {q:"ما معنى الكفر الأكبر والكفر الأصغر؟",options:["لا فرق","الأكبر يُخرج من الملة والأصغر لا يُخرج","الأصغر أخطر","كلاهما يُخرج من الملة"],answer:1},
+            {q:"ما هو البرزخ في العقيدة الإسلامية؟",options:["جسر فوق النار","الحياة بين الموت ويوم القيامة","الجنة","مكان في الدنيا"],answer:1},
+            {q:"ما هي علامات الساعة الصغرى؟ اذكر مثالاً",options:["لا توجد علامات","بعثة النبي ﷺ وكثرة الفتن وقلة العلم","خروج الدجال فقط","نزول عيسى فقط"],answer:1},
+        ],
+        hard: [
+            {q:"ما معنى توحيد الأسماء والصفات؟",options:["إنكار الصفات","إثبات ما أثبته الله لنفسه وأثبته رسوله بلا تمثيل ولا تعطيل ولا تحريف ولا تكييف","تشبيه الله بالخلق","تأويل كل الصفات"],answer:1},
+            {q:"ما الفرق بين النبي والرسول عند أهل العلم؟",options:["لا فرق","الرسول أُوحي إليه بشرع وأُمر بتبليغه والنبي أُوحي إليه بشرع من قبله","النبي أعلى","الرسول لا يُوحى إليه"],answer:1},
+            {q:"ما هي نواقض الإسلام العشرة التي ذكرها محمد بن عبد الوهاب؟",options:["لا يوجد نواقض","منها: الشرك بالله، السحر، تكفير المسلمين، مظاهرة المشركين على المسلمين","الكبائر فقط","الصغائر"],answer:1},
+            {q:"ما موقف أهل السنة من الصحابة؟",options:["تقديسهم","حبهم وتوليهم والكف عما شجر بينهم وعدم تكفير أحد منهم","تكفير بعضهم","لعن بعضهم"],answer:1},
+            {q:"ما هي فتنة القبر؟",options:["عذاب القبر","سؤال الملكين منكر ونكير: من ربك وما دينك ومن نبيك","ظلمة القبر","وحشة القبر"],answer:1},
+            {q:"ما هو الصراط في العقيدة؟",options:["طريق في الدنيا","جسر منصوب على جهنم يمر عليه الناس يوم القيامة","طريق إلى المسجد","صراط مستقيم في الدنيا فقط"],answer:1},
+            {q:"ما هو الحوض المورود يوم القيامة؟",options:["بحيرة في الجنة","حوض النبي ﷺ الذي يرده المؤمنون قبل دخول الجنة","نهر في الدنيا","بركة ماء"],answer:1},
+            {q:"ما هو الميزان يوم القيامة؟",options:["ميزان تجاري","ميزان حقيقي تُوزن فيه الأعمال يوم القيامة","ميزان مجازي","لا يوجد ميزان"],answer:1},
+            {q:"ما هي الشفاعة العظمى؟ لمن هي؟",options:["شفاعة الملائكة","شفاعة النبي ﷺ لأهل الموقف ليبدأ الحساب (المقام المحمود)","شفاعة الأنبياء جميعاً","شفاعة المؤمنين"],answer:1},
+            {q:"ما هو مذهب أهل السنة في رؤية الله يوم القيامة؟",options:["لا يُرى","يراه المؤمنون يوم القيامة كما ثبت في الأحاديث الصحيحة","يراه الأنبياء فقط","يُرى في الدنيا"],answer:1},
+            {q:"ما الفرق بين التوكل والتواكل؟",options:["لا فرق","التوكل: الاعتماد على الله مع الأخذ بالأسباب. التواكل: ترك الأسباب","التواكل أفضل","التوكل ترك العمل"],answer:1},
+            {q:"ما هي مراتب القدر الأربع؟",options:["لا توجد مراتب","العلم والكتابة والمشيئة والخلق","الإرادة فقط","العلم فقط"],answer:1},
+        ],
+        expert: [
+            {q:"ما هو تعريف الإيمان عند أهل السنة والجماعة؟",options:["قول باللسان فقط","تصديق بالقلب وقول باللسان وعمل بالجوارح يزيد وينقص","اعتقاد القلب فقط","العمل فقط"],answer:1},
+            {q:"ما الفرق بين الإرجاء ومذهب أهل السنة في الإيمان؟",options:["لا فرق","المرجئة أخرجوا العمل من الإيمان وأهل السنة جعلوه ركناً","المرجئة أشد","أهل السنة مرجئة"],answer:1},
+            {q:"ما هو مذهب أهل السنة في أفعال العباد؟",options:["الجبر المطلق","أفعال العباد مخلوقة لله وللعبد فيها اختيار وإرادة","العبد يخلق فعله","لا إرادة للعبد"],answer:1},
+            {q:"ما هي عقيدة أهل السنة في القرآن؟",options:["مخلوق","كلام الله غير مخلوق منه بدأ وإليه يعود","قديم بذاته","كلام جبريل"],answer:1},
+            {q:"ما هو الاستواء على العرش عند أهل السنة؟",options:["استقرار مادي","نثبته كما أخبر الله بلا تكييف ولا تمثيل والكيف مجهول","نؤوله بالاستيلاء","ننفيه"],answer:1},
+            {q:"ما هي مسألة خلق القرآن التي امتُحن فيها الإمام أحمد؟",options:["فتنة عادية","قال المعتزلة بخلق القرآن وأبى أحمد وقال إنه كلام الله غير مخلوق وسُجن وعُذب","خلاف بسيط","مسألة فقهية"],answer:1},
+            {q:"ما هي عقيدة الوسطية عند أهل السنة بين الفرق؟",options:["التشدد","وسط بين الخوارج والمرجئة في الإيمان، وبين الجبرية والقدرية في القدر، وبين المشبهة والمعطلة في الصفات","التساهل","لا وسطية"],answer:1},
+            {q:"ما معنى الولاية في العقيدة الإسلامية (ولي الله)؟",options:["شخص له كرامات خارقة","المؤمن التقي — كل من آمن واتقى فهو ولي لله","شخص معصوم","رجل دين فقط"],answer:1},
+            {q:"ما الفرق بين الكرامة والاستدراج؟",options:["لا فرق","الكرامة لأولياء الله الصالحين والاستدراج إمهال الله للعاصي","الكرامة للأنبياء","الاستدراج نوع من الكرامة"],answer:1},
+            {q:"ما هي علامات الساعة الكبرى العشر؟ اذكر بعضها",options:["لا توجد علامات كبرى","منها: خروج الدجال ونزول عيسى ويأجوج ومأجوج وطلوع الشمس من مغربها والدخان","الزلازل فقط","الحروب فقط"],answer:1},
+            {q:"ما هو مفهوم التكفير عند أهل السنة وضوابطه؟",options:["تكفير كل من أذنب","لا يُكفّر معين إلا بعد إقامة الحجة وانتفاء الموانع (الجهل والتأويل والإكراه)","لا تكفير مطلقاً","تكفير كل المخالفين"],answer:1},
+            {q:"ما معنى قاعدة: نُمرّ أحاديث الصفات كما جاءت بلا كيف؟ من قالها؟",options:["الإمام مالك","قالها جمع من السلف ومنهم الإمام أحمد — أي نثبتها ولا نخوض في كيفيتها","الغزالي","ابن رشد"],answer:1},
+        ]
+    }
 }
 };
 
@@ -743,7 +902,7 @@ const diffLabels = {easy:"سهل",medium:"متوسط",hard:"صعب",expert:"خب
 const diffClasses = {easy:"diff-easy",medium:"diff-medium",hard:"diff-hard",expert:"diff-expert"};
 
 let state = {
-    playerCount: 2, players: [], selectedCategories: [], baseTimeLimit: 25,
+    mode: null, playerCount: 2, players: [], selectedCategories: [], baseTimeLimit: 25,
     currentPlayerIndex: 0, currentQuestionIndex: 0, currentLevel: 0,
     levelQuestions: [], levelCorrectCount: 0, levelQuestionsDone: 0,
     timer: null, timeLeft: 0, answered: false, gameOver: false,
@@ -762,6 +921,16 @@ function init() {
             renderPlayerInputs();
         });
     });
+}
+
+function selectMode(mode) {
+    state.mode = mode;
+    document.getElementById('modeSolo').classList.toggle('selected', mode === 'solo');
+    document.getElementById('modeMulti').classList.toggle('selected', mode === 'multi');
+    document.getElementById('soloSection').style.display = mode === 'solo' ? 'block' : 'none';
+    document.getElementById('multiplayerSection').style.display = mode === 'multi' ? 'block' : 'none';
+    document.getElementById('settingsRow').style.display = 'flex';
+    document.getElementById('btnStart').style.display = 'block';
 }
 
 function renderPlayerInputs() {
@@ -798,9 +967,15 @@ function showScreen(id) {
 
 function goToCategories() {
     state.players = [];
-    for (let i = 0; i < state.playerCount; i++) {
-        const input = document.getElementById(`player${i}`);
-        state.players.push({name: input.value.trim() || `لاعب ${i+1}`, score:0, correct:0, wrong:0, levelReached:1});
+    if (state.mode === 'solo') {
+        const name = document.getElementById('soloName').value.trim() || 'أنا';
+        state.playerCount = 1;
+        state.players.push({name, score:0, correct:0, wrong:0, levelReached:1});
+    } else {
+        for (let i = 0; i < state.playerCount; i++) {
+            const input = document.getElementById(`player${i}`);
+            state.players.push({name: input.value.trim() || `لاعب ${i+1}`, score:0, correct:0, wrong:0, levelReached:1});
+        }
     }
     state.baseTimeLimit = parseInt(document.getElementById('timeLimit').value);
     showScreen('categoryScreen');
@@ -1022,8 +1197,19 @@ function retryLevel() {
 function showResults() {
     removeOverlay(); clearInterval(state.timer);
     const sorted = [...state.players].sort((a,b) => b.score - a.score);
-    const isTie = sorted.length > 1 && sorted[0].score === sorted[1].score;
-    document.getElementById('winnerName').textContent = isTie ? 'تعادل! 🤝' : `🎉 الفائز: ${sorted[0].name}`;
+    const isSolo = state.mode === 'solo';
+    const isTie = !isSolo && sorted.length > 1 && sorted[0].score === sorted[1].score;
+
+    if (isSolo) {
+        const p = sorted[0];
+        const total = p.correct + p.wrong;
+        const pct = total > 0 ? Math.round((p.correct/total)*100) : 0;
+        const lvl = Math.min(p.levelReached, 10);
+        document.getElementById('winnerName').textContent = `${p.name} — النتيجة: ${p.score} نقطة`;
+    } else {
+        document.getElementById('winnerName').textContent = isTie ? 'تعادل! 🤝' : `🎉 الفائز: ${sorted[0].name}`;
+    }
+
     const table = document.getElementById('resultsTable'); table.innerHTML = '';
     sorted.forEach((p, i) => {
         const total = p.correct + p.wrong;
@@ -1031,7 +1217,7 @@ function showResults() {
         const row = document.createElement('div');
         row.className = `results-row ${i===0?'first':''}`;
         row.innerHTML = `
-            <div class="rank-badge rank-${i+1}">${['🥇','🥈','🥉','4'][i]||i+1}</div>
+            ${isSolo ? '<div class="rank-badge rank-1">⭐</div>' : `<div class="rank-badge rank-${i+1}">${['🥇','🥈','🥉','4'][i]||i+1}</div>`}
             <div class="results-player-info">
                 <div class="results-player-name">${p.name}</div>
                 <div class="results-player-stats">${p.correct} صحيحة · ${p.wrong} خاطئة · ${pct}%</div>
@@ -1041,7 +1227,7 @@ function showResults() {
         table.appendChild(row);
     });
     showScreen('resultsScreen');
-    if (!isTie) createConfetti();
+    createConfetti();
 }
 
 function createConfetti() {
@@ -1061,8 +1247,15 @@ function createConfetti() {
 function restartSameSettings() { startGame(); }
 function newGame() {
     state.selectedCategories = [];
+    state.mode = null;
     document.querySelectorAll('.category-card').forEach(c => c.classList.remove('selected'));
     document.getElementById('btnPlay').disabled = true;
+    document.getElementById('modeSolo').classList.remove('selected');
+    document.getElementById('modeMulti').classList.remove('selected');
+    document.getElementById('soloSection').style.display = 'none';
+    document.getElementById('multiplayerSection').style.display = 'none';
+    document.getElementById('settingsRow').style.display = 'none';
+    document.getElementById('btnStart').style.display = 'none';
     showScreen('startScreen');
 }
 
