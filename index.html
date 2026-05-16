@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مسابقة المعرفة الإسلامية</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #1a6b4a; --primary-light: #2d9d6f; --primary-dark: #0e4a32;
+            --gold: #d4a843; --gold-light: #f0d078;
+            --bg: #0a1628; --bg-card: #112240; --bg-card-hover: #1a3358;
+            --text: #e6f1ff; --text-dim: #8892b0;
+            --correct: #2ecc71; --wrong: #e74c3c; --radius: 16px;
+        }
+        body { font-family:'Tajawal',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+        .bg-pattern {
+            position:fixed;top:0;left:0;width:100%;height:100%;
+            background-image:radial-gradient(circle at 20% 50%,rgba(26,107,74,0.08) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(212,168,67,0.06) 0%,transparent 50%),radial-gradient(circle at 50% 80%,rgba(26,107,74,0.05) 0%,transparent 50%);
+            pointer-events:none;z-index:0;
+        }
+        .geometric-decoration { position:fixed;width:300px;height:300px;border:1px solid rgba(212,168,67,0.08);border-radius:50%;pointer-events:none;z-index:0; }
+        .geometric-decoration:nth-child(1){top:-100px;right:-100px}
+        .geometric-decoration:nth-child(2){bottom:-150px;left:-100px;width:400px;height:400px}
+        .container { position:relative;z-index:1;max-width:900px;margin:0 auto;padding:20px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center; }
+        .screen{display:none;width:100%;animation:fadeIn 0.5s ease} .screen.active{display:block}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+        @keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes correctFlash{0%{background:var(--correct);box-shadow:0 0 30px rgba(46,204,113,0.5)}100%{background:rgba(46,204,113,0.15)}}
+        @keyframes wrongShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+        @keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15);color:var(--wrong)}}
+        @keyframes confetti{0%{transform:translateY(-100vh) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+        @keyframes levelUp{0%{transform:scale(0.5);opacity:0}50%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+
+        .logo{text-align:center;margin-bottom:40px}
+        .logo-icon{font-size:80px;margin-bottom:10px;display:block}
+        .logo h1{font-size:2.8rem;font-weight:900;background:linear-gradient(135deg,var(--gold-light),var(--gold),var(--primary-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+        .logo p{color:var(--text-dim);font-size:1.1rem}
+        .players-setup{background:var(--bg-card);border-radius:var(--radius);padding:30px;border:1px solid rgba(212,168,67,0.15)}
+        .players-setup h2{font-size:1.3rem;color:var(--gold);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+        .player-count{display:flex;gap:10px;margin-bottom:25px;justify-content:center}
+        .count-btn{width:55px;height:55px;border-radius:12px;border:2px solid rgba(212,168,67,0.3);background:transparent;color:var(--text);font-size:1.3rem;font-family:'Tajawal';font-weight:700;cursor:pointer;transition:all 0.3s}
+        .count-btn:hover{border-color:var(--gold);background:rgba(212,168,67,0.1)}
+        .count-btn.active{background:var(--gold);color:var(--bg);border-color:var(--gold)}
+        .player-inputs{display:flex;flex-direction:column;gap:12px;margin-bottom:25px}
+        .player-input-row{display:flex;align-items:center;gap:12px;animation:slideIn 0.3s ease}
+        .player-avatar{width:45px;height:45px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;flex-shrink:0}
+        .player-input-row:nth-child(1) .player-avatar{background:#2ecc71;color:#fff}
+        .player-input-row:nth-child(2) .player-avatar{background:#3498db;color:#fff}
+        .player-input-row:nth-child(3) .player-avatar{background:#e67e22;color:#fff}
+        .player-input-row:nth-child(4) .player-avatar{background:#9b59b6;color:#fff}
+        .player-input-row input{flex:1;padding:12px 16px;border-radius:10px;border:2px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:var(--text);font-size:1rem;font-family:'Tajawal';transition:border-color 0.3s}
+        .player-input-row input:focus{outline:none;border-color:var(--gold)}
+        .player-input-row input::placeholder{color:var(--text-dim)}
+        .settings-row{display:flex;gap:15px;margin-bottom:25px;flex-wrap:wrap}
+        .setting-group{flex:1;min-width:200px}
+        .setting-group label{display:block;color:var(--text-dim);font-size:0.9rem;margin-bottom:8px}
+        .setting-group select{width:100%;padding:10px 14px;border-radius:10px;border:2px solid rgba(255,255,255,0.1);background:var(--bg);color:var(--text);font-size:1rem;font-family:'Tajawal';cursor:pointer}
+        .setting-group select:focus{outline:none;border-color:var(--gold)}
+        .btn-start{width:100%;padding:16px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;font-size:1.3rem;font-weight:700;font-family:'Tajawal';cursor:pointer;transition:all 0.3s}
+        .btn-start:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(26,107,74,0.4)}
+
+        .category-header{text-align:center;margin-bottom:30px}
+        .category-header h2{font-size:2rem;color:var(--gold);margin-bottom:5px}
+        .category-header p{color:var(--text-dim)}
+        .categories-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;margin-bottom:20px}
+        .category-card{background:var(--bg-card);border:2px solid rgba(212,168,67,0.15);border-radius:var(--radius);padding:25px;text-align:center;cursor:pointer;transition:all 0.3s}
+        .category-card:hover{border-color:var(--gold);background:var(--bg-card-hover);transform:translateY(-3px)}
+        .category-card.selected{border-color:var(--gold);background:rgba(212,168,67,0.1)}
+        .category-icon{font-size:2.5rem;margin-bottom:10px;display:block}
+        .category-card h3{font-size:1.2rem;margin-bottom:5px}
+        .category-card p{color:var(--text-dim);font-size:0.85rem}
+        .btn-play{width:100%;padding:16px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--bg);font-size:1.3rem;font-weight:700;font-family:'Tajawal';cursor:pointer;transition:all 0.3s}
+        .btn-play:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(212,168,67,0.4)}
+        .btn-play:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none}
+
+        .level-intro{text-align:center;padding:60px 20px}
+        .level-number{font-size:5rem;font-weight:900;background:linear-gradient(135deg,var(--gold-light),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:levelUp 0.8s ease;display:block}
+        .level-title{font-size:1.8rem;margin:10px 0}
+        .level-difficulty{display:flex;align-items:center;justify-content:center;gap:8px;margin:15px 0}
+        .diff-star{font-size:1.3rem} .diff-star.empty{opacity:0.2}
+        .level-desc{color:var(--text-dim);font-size:1.05rem;margin-bottom:10px}
+        .level-info-chips{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+        .level-chip{background:var(--bg-card);padding:8px 18px;border-radius:20px;font-size:0.9rem;border:1px solid rgba(255,255,255,0.1)}
+        .level-chip span{color:var(--gold);font-weight:700}
+
+        .game-top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px}
+        .current-player-indicator{display:flex;align-items:center;gap:10px;background:var(--bg-card);padding:8px 18px;border-radius:30px;border:2px solid rgba(212,168,67,0.2)}
+        .current-player-dot{width:12px;height:12px;border-radius:50%;animation:pulse 1.5s infinite}
+        .current-player-name{font-weight:700;font-size:1.1rem}
+        .question-counter{color:var(--text-dim);font-size:0.95rem;background:var(--bg-card);padding:8px 18px;border-radius:30px}
+        .timer-display{display:flex;align-items:center;gap:8px;background:var(--bg-card);padding:8px 18px;border-radius:30px;font-size:1.2rem;font-weight:700}
+        .timer-display.warning{animation:timerPulse 0.5s infinite;border:2px solid var(--wrong)}
+
+        .level-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;background:var(--bg-card);padding:10px 18px;border-radius:12px;border:1px solid rgba(212,168,67,0.1)}
+        .level-badge{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--bg);padding:4px 14px;border-radius:20px;font-weight:800;font-size:0.9rem;white-space:nowrap}
+        .level-progress-track{flex:1;height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden}
+        .level-progress-fill{height:100%;border-radius:4px;transition:width 0.5s ease;background:linear-gradient(90deg,var(--primary),var(--gold))}
+        .level-progress-text{color:var(--text-dim);font-size:0.85rem;min-width:60px;text-align:left}
+
+        .progress-bar-container{width:100%;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;margin-bottom:20px;overflow:hidden}
+        .progress-bar{height:100%;background:linear-gradient(90deg,var(--primary),var(--gold));border-radius:3px;transition:width 0.5s ease}
+
+        .question-card{background:var(--bg-card);border-radius:var(--radius);padding:35px;margin-bottom:20px;border:1px solid rgba(212,168,67,0.15);text-align:center}
+        .question-category-tag{display:inline-block;padding:4px 14px;border-radius:20px;background:rgba(212,168,67,0.15);color:var(--gold);font-size:0.85rem;margin-bottom:15px}
+        .difficulty-tag{display:inline-block;padding:4px 12px;border-radius:20px;font-size:0.8rem;margin-bottom:15px;margin-right:8px}
+        .diff-easy{background:rgba(46,204,113,0.15);color:#2ecc71}
+        .diff-medium{background:rgba(230,126,34,0.15);color:#e67e22}
+        .diff-hard{background:rgba(231,76,60,0.15);color:#e74c3c}
+        .diff-expert{background:rgba(155,89,182,0.15);color:#9b59b6}
+        .question-text{font-size:1.4rem;font-weight:700;line-height:1.8}
+
+        .options-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        @media(max-width:600px){.options-grid{grid-template-columns:1fr}}
+        .option-btn{padding:18px 20px;border-radius:12px;border:2px solid rgba(255,255,255,0.1);background:var(--bg-card);color:var(--text);font-size:1.1rem;font-family:'Tajawal';cursor:pointer;transition:all 0.3s;text-align:center}
+        .option-btn:hover:not(.disabled){border-color:var(--gold);background:var(--bg-card-hover)}
+        .option-btn.correct{border-color:var(--correct);background:rgba(46,204,113,0.15);animation:correctFlash 0.6s ease}
+        .option-btn.wrong{border-color:var(--wrong);background:rgba(231,76,60,0.15);animation:wrongShake 0.4s ease}
+        .option-btn.disabled{cursor:not-allowed;opacity:0.6}
+        .option-letter{display:inline-block;width:30px;height:30px;line-height:30px;border-radius:8px;background:rgba(255,255,255,0.1);margin-left:10px;font-weight:700;font-size:0.9rem}
+
+        .answer-feedback{text-align:center;margin-top:20px;min-height:60px;display:flex;flex-direction:column;align-items:center;gap:8px}
+        .feedback-text{font-size:1.1rem;font-weight:700}
+        .feedback-text.correct{color:var(--correct)} .feedback-text.wrong{color:var(--wrong)} .feedback-text.timeout{color:var(--gold)}
+        .feedback-detail{color:var(--text-dim);font-size:0.95rem}
+
+        .scores-bar{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+        .score-chip{display:flex;align-items:center;gap:8px;background:var(--bg-card);padding:8px 14px;border-radius:10px;flex:1;min-width:120px;border:1px solid rgba(255,255,255,0.05)}
+        .score-chip-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+        .score-chip-name{font-size:0.85rem;color:var(--text-dim)}
+        .score-chip-points{font-weight:700;margin-right:auto;direction:ltr}
+
+        .level-complete-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,22,40,0.92);z-index:50;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.3s ease}
+        .level-complete-box{background:var(--bg-card);border-radius:20px;padding:40px;text-align:center;max-width:500px;width:90%;border:2px solid rgba(212,168,67,0.3);animation:levelUp 0.5s ease}
+        .level-complete-icon{font-size:60px;display:block;margin-bottom:15px}
+        .level-complete-title{font-size:1.6rem;font-weight:800;color:var(--gold);margin-bottom:8px}
+        .level-complete-stats{color:var(--text-dim);margin-bottom:20px;line-height:1.8}
+        .level-complete-stats strong{color:var(--text)}
+        .btn-next-level{padding:14px 40px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;font-size:1.2rem;font-weight:700;font-family:'Tajawal';cursor:pointer;transition:all 0.3s}
+        .btn-next-level:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(26,107,74,0.4)}
+        .btn-retry-level{padding:14px 40px;border-radius:12px;border:2px solid var(--wrong);background:transparent;color:var(--wrong);font-size:1.1rem;font-weight:700;font-family:'Tajawal';cursor:pointer;transition:all 0.3s;margin-top:10px}
+        .btn-retry-level:hover{background:rgba(231,76,60,0.1)}
+
+        .results-container{text-align:center}
+        .trophy-icon{font-size:80px;display:block;margin-bottom:10px;animation:pulse 2s infinite}
+        .results-title{font-size:2rem;font-weight:900;color:var(--gold);margin-bottom:5px}
+        .winner-name{font-size:1.5rem;color:var(--text);margin-bottom:30px}
+        .results-table{width:100%;background:var(--bg-card);border-radius:var(--radius);overflow:hidden;margin-bottom:25px;border:1px solid rgba(212,168,67,0.15)}
+        .results-row{display:flex;align-items:center;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,0.05);gap:15px}
+        .results-row:last-child{border-bottom:none}
+        .results-row.first{background:rgba(212,168,67,0.08)}
+        .rank-badge{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.1rem;flex-shrink:0}
+        .rank-1{background:var(--gold);color:var(--bg)} .rank-2{background:#95a5a6;color:var(--bg)} .rank-3{background:#cd7f32;color:var(--bg)} .rank-4{background:rgba(255,255,255,0.1);color:var(--text-dim)}
+        .results-player-info{flex:1;text-align:right}
+        .results-player-name{font-weight:700;font-size:1.1rem}
+        .results-player-stats{color:var(--text-dim);font-size:0.85rem}
+        .results-score{font-size:1.5rem;font-weight:800;color:var(--gold)}
+        .results-level-reached{color:var(--primary-light);font-size:0.85rem}
+        .results-buttons{display:flex;gap:12px}
+        .btn-restart{flex:1;padding:14px;border-radius:12px;border:2px solid var(--gold);background:transparent;color:var(--gold);font-size:1.1rem;font-weight:700;font-family:'Tajawal';cursor:pointer;transition:all 0.3s}
+        .btn-restart:hover{background:rgba(212,168,67,0.1)}
+        .btn-new-game{flex:1;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;font-size:1.1rem;font-weight:700;font-family:'Tajawal';cursor:pointer;transition:all 0.3s}
+        .btn-new-game:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(26,107,74,0.4)}
+        .confetti-piece{position:fixed;top:-20px;z-index:100;pointer-events:none}
+
+        @media(max-width:600px){
+            .logo h1{font-size:2rem} .question-text{font-size:1.15rem} .game-top-bar{justify-content:center}
+            .results-buttons{flex-direction:column} .settings-row{flex-direction:column} .level-number{font-size:3.5rem}
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    <div class="geometric-decoration"></div>
+    <div class="geometric-decoration"></div>
+    <div class="container">
+        <div class="screen active" id="startScreen">
+            <div class="logo">
+                <span class="logo-icon">🕌</span>
+                <h1>مسابقة المعرفة الإسلامية</h1>
+                <p>١٠ مراحل من التحدي في السيرة النبوية والمعلومات الإسلامية</p>
+            </div>
+            <div class="players-setup">
+                <h2>👥 عدد اللاعبين</h2>
+                <div class="player-count">
+                    <button class="count-btn active" data-count="2">٢</button>
+                    <button class="count-btn" data-count="3">٣</button>
+                    <button class="count-btn" data-count="4">٤</button>
+                </div>
+                <div class="player-inputs" id="playerInputs"></div>
+                <div class="settings-row">
+                    <div class="setting-group">
+                        <label>وقت السؤال الأساسي</label>
+                        <select id="timeLimit">
+                            <option value="20">٢٠ ثانية</option>
+                            <option value="25" selected>٢٥ ثانية</option>
+                            <option value="30">٣٠ ثانية</option>
+                            <option value="0">بدون وقت</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-start" onclick="goToCategories()">ابدأ المسابقة ⚡</button>
+            </div>
+        </div>
+        <div class="screen" id="categoryScreen">
+            <div class="category-header">
+                <h2>اختر التصنيفات</h2>
+                <p>اختر تصنيفاً واحداً أو أكثر للمسابقة</p>
+            </div>
+            <div class="categories-grid" id="categoriesGrid"></div>
+            <button class="btn-play" id="btnPlay" disabled onclick="startGame()">ابدأ المراحل 🎮</button>
+        </div>
+        <div class="screen" id="levelIntroScreen">
+            <div class="level-intro" id="levelIntroContent"></div>
+        </div>
+        <div class="screen" id="gameScreen">
+            <div class="game-top-bar">
+                <div class="current-player-indicator">
+                    <div class="current-player-dot" id="currentPlayerDot"></div>
+                    <span class="current-player-name" id="currentPlayerName"></span>
+                </div>
+                <div class="question-counter" id="questionCounter"></div>
+                <div class="timer-display" id="timerDisplay"><span>⏱</span><span id="timerValue"></span></div>
+            </div>
+            <div class="level-bar">
+                <span class="level-badge" id="levelBadge"></span>
+                <div class="level-progress-track"><div class="level-progress-fill" id="levelProgressFill"></div></div>
+                <span class="level-progress-text" id="levelProgressText"></span>
+            </div>
+            <div class="progress-bar-container"><div class="progress-bar" id="progressBar"></div></div>
+            <div class="question-card">
+                <span class="question-category-tag" id="questionCategory"></span>
+                <span class="difficulty-tag" id="difficultyTag"></span>
+                <p class="question-text" id="questionText"></p>
+            </div>
+            <div class="options-grid" id="optionsGrid"></div>
+            <div class="answer-feedback" id="answerFeedback"></div>
+            <div class="scores-bar" id="scoresBar"></div>
+        </div>
+        <div class="screen" id="resultsScreen">
+            <div class="results-container">
+                <span class="trophy-icon">🏆</span>
+                <h2 class="results-title">انتهت المسابقة!</h2>
+                <p class="winner-name" id="winnerName"></p>
+                <div class="results-table" id="resultsTable"></div>
+                <div class="results-buttons">
+                    <button class="btn-restart" onclick="restartSameSettings()">إعادة اللعب 🔄</button>
+                    <button class="btn-new-game" onclick="newGame()">لعبة جديدة 🏠</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// ===================== LEVEL CONFIG =====================
+const LEVELS = [
+    { name:"المبتدئ", desc:"أسئلة تمهيدية سهلة للتحمية", stars:1, questionsCount:5, minCorrectPercent:60, timeBonus:5, pointsPerQ:10, diff:"easy" },
+    { name:"الطالب", desc:"أسئلة أساسية في المعرفة الإسلامية", stars:2, questionsCount:5, minCorrectPercent:60, timeBonus:3, pointsPerQ:15, diff:"easy" },
+    { name:"المتعلم", desc:"أسئلة تحتاج تركيزاً أكثر", stars:3, questionsCount:6, minCorrectPercent:65, timeBonus:2, pointsPerQ:20, diff:"medium" },
+    { name:"المجتهد", desc:"أسئلة متوسطة الصعوبة", stars:4, questionsCount:6, minCorrectPercent:65, timeBonus:2, pointsPerQ:25, diff:"medium" },
+    { name:"المثقف", desc:"أسئلة تتطلب معرفة جيدة", stars:5, questionsCount:7, minCorrectPercent:70, timeBonus:1, pointsPerQ:30, diff:"medium" },
+    { name:"العالِم", desc:"أسئلة صعبة للمتميزين", stars:6, questionsCount:7, minCorrectPercent:70, timeBonus:1, pointsPerQ:40, diff:"hard" },
+    { name:"الفقيه", desc:"أسئلة تحتاج علماً واسعاً", stars:7, questionsCount:8, minCorrectPercent:75, timeBonus:0, pointsPerQ:50, diff:"hard" },
+    { name:"المحدّث", desc:"أسئلة دقيقة ومتقدمة", stars:8, questionsCount:8, minCorrectPercent:75, timeBonus:0, pointsPerQ:60, diff:"hard" },
+    { name:"الحافظ", desc:"أسئلة للخبراء فقط", stars:9, questionsCount:8, minCorrectPercent:80, timeBonus:0, pointsPerQ:75, diff:"expert" },
+    { name:"الإمام", desc:"أصعب الأسئلة — لمن يملك علماً عميقاً", stars:10, questionsCount:10, minCorrectPercent:80, timeBonus:0, pointsPerQ:100, diff:"expert" },
+];
+
+// ===================== QUESTIONS DATABASE =====================
+const questionsDB = {
+seerah: {
+    name:"السيرة النبوية", icon:"🕋", description:"أسئلة عن حياة النبي ﷺ",
+    questions: {
+        easy: [
+            {q:"في أي عام ولد النبي محمد ﷺ؟",options:["عام الفيل","عام الحزن","عام الفتح","عام الوفود"],answer:0},
+            {q:"ما اسم أم النبي ﷺ؟",options:["خديجة بنت خويلد","آمنة بنت وهب","فاطمة بنت أسد","هالة بنت وهيب"],answer:1},
+            {q:"ما اسم مرضعة النبي ﷺ من بني سعد؟",options:["أم أيمن","حليمة السعدية","ثويبة","أم كلثوم"],answer:1},
+            {q:"كم كان عمر النبي ﷺ عند نزول الوحي؟",options:["٢٥ سنة","٣٠ سنة","٣٥ سنة","٤٠ سنة"],answer:3},
+            {q:"ما أول ما نزل من القرآن الكريم؟",options:["سورة الفاتحة","اقرأ باسم ربك","يا أيها المدثر","بسم الله الرحمن الرحيم"],answer:1},
+            {q:"في أي غار كان النبي ﷺ يتعبد قبل البعثة؟",options:["غار ثور","غار حراء","غار أحد","غار سلع"],answer:1},
+            {q:"من أول من أسلم من الرجال؟",options:["عمر بن الخطاب","علي بن أبي طالب","أبو بكر الصديق","عثمان بن عفان"],answer:2},
+            {q:"من أول من أسلم من النساء؟",options:["عائشة","فاطمة الزهراء","خديجة بنت خويلد","أم سلمة"],answer:2},
+            {q:"ما اسم جد النبي ﷺ الذي كفله؟",options:["عبد مناف","عبد المطلب","هاشم","أبو طالب"],answer:1},
+            {q:"أين ولد النبي ﷺ؟",options:["المدينة المنورة","الطائف","مكة المكرمة","اليمن"],answer:2},
+            {q:"ما هي أول زوجات النبي ﷺ؟",options:["عائشة","حفصة","خديجة بنت خويلد","سودة بنت زمعة"],answer:2},
+            {q:"كم كان عمر النبي ﷺ عندما توفيت أمه؟",options:["٤ سنوات","٦ سنوات","٨ سنوات","١٠ سنوات"],answer:1},
+            {q:"ما مهنة النبي ﷺ قبل البعثة؟",options:["الزراعة","الرعي والتجارة","الحدادة","النجارة"],answer:1},
+            {q:"ما اسم عم النبي ﷺ الذي كفله بعد جده؟",options:["أبو لهب","أبو طالب","حمزة","العباس"],answer:1},
+            {q:"من هو صاحب النبي ﷺ في الهجرة؟",options:["عمر بن الخطاب","أبو بكر الصديق","علي بن أبي طالب","عثمان"],answer:1},
+            {q:"ما اسم أبو النبي ﷺ؟",options:["عبد الله","عبد المطلب","أبو طالب","هاشم"],answer:0},
+            {q:"كم عدد أبناء النبي ﷺ من الإناث؟",options:["٢","٣","٤","٥"],answer:2},
+            {q:"ما اسم أول ابنة للنبي ﷺ؟",options:["فاطمة","زينب","رقية","أم كلثوم"],answer:1},
+            {q:"من هو أول من أسلم من الصبيان؟",options:["زيد بن حارثة","علي بن أبي طالب","عبد الله بن عباس","أنس بن مالك"],answer:1},
+            {q:"ما لقب النبي ﷺ قبل البعثة في مكة؟",options:["الصادق الأمين","الحبيب","المختار","البشير"],answer:0},
+        ],
+        medium: [
+            {q:"ما اسم الغار الذي اختبأ فيه النبي ﷺ أثناء الهجرة؟",options:["غار حراء","غار ثور","غار المغارة","غار أحد"],answer:1},
+            {q:"في أي سنة ميلادية كانت الهجرة النبوية؟",options:["٦١٠ م","٦١٥ م","٦٢٠ م","٦٢٢ م"],answer:3},
+            {q:"ما أول مسجد بُني في الإسلام؟",options:["المسجد الحرام","المسجد النبوي","مسجد قباء","المسجد الأقصى"],answer:2},
+            {q:"كم عدد غزوات النبي ﷺ تقريباً؟",options:["١٩ غزوة","٢٣ غزوة","٢٧ غزوة","٢٩ غزوة"],answer:2},
+            {q:"في أي سنة هجرية وقعت غزوة بدر الكبرى؟",options:["١ هـ","٢ هـ","٣ هـ","٤ هـ"],answer:1},
+            {q:"كم كان عدد المسلمين في غزوة بدر؟",options:["حوالي ١٠٠٠","حوالي ٣١٣","حوالي ٧٠٠","حوالي ٥٠٠"],answer:1},
+            {q:"متى فُتحت مكة؟",options:["٦ هـ","٧ هـ","٨ هـ","١٠ هـ"],answer:2},
+            {q:"كم كان عمر النبي ﷺ عند وفاته؟",options:["٦٠ سنة","٦٣ سنة","٦٥ سنة","٧٠ سنة"],answer:1},
+            {q:"أين دُفن النبي ﷺ؟",options:["في البقيع","في حجرة عائشة بالمسجد النبوي","في المسجد الحرام","في مكة"],answer:1},
+            {q:"من الصحابي الذي نام في فراش النبي ﷺ ليلة الهجرة؟",options:["أبو بكر","عمر","علي بن أبي طالب","الزبير"],answer:2},
+            {q:"كم استمرت دعوة النبي ﷺ السرية؟",options:["سنة واحدة","سنتين","ثلاث سنوات","خمس سنوات"],answer:2},
+            {q:"إلى أين كانت أول هجرة للمسلمين؟",options:["المدينة المنورة","الحبشة","اليمن","الشام"],answer:1},
+            {q:"ما اسم العهد الذي بايع فيه أهل المدينة النبي ﷺ؟",options:["حلف الفضول","بيعة العقبة","صلح الحديبية","صحيفة المدينة"],answer:1},
+            {q:"كم كان عمر النبي ﷺ حين تزوج خديجة؟",options:["٢٠ سنة","٢٥ سنة","٣٠ سنة","٣٥ سنة"],answer:1},
+            {q:"ما اسم ناقة النبي ﷺ التي هاجر عليها؟",options:["العضباء","القصواء","الجدعاء","كل ما سبق أسماء لها"],answer:3},
+            {q:"في أي سنة هجرية وقعت غزوة أحد؟",options:["٢ هـ","٣ هـ","٤ هـ","٥ هـ"],answer:1},
+            {q:"ما هو حلف الفضول الذي شهده النبي ﷺ؟",options:["تحالف لنصرة المظلوم","تحالف حربي","اتفاق تجاري","معاهدة سلام"],answer:0},
+            {q:"من هي آخر زوجات النبي ﷺ؟",options:["عائشة","ميمونة بنت الحارث","صفية بنت حيي","أم حبيبة"],answer:1},
+            {q:"ما أول ما فعله النبي ﷺ عند وصوله المدينة؟",options:["بناء بيته","بناء مسجد قباء","المؤاخاة بين المهاجرين والأنصار","كتابة صحيفة المدينة"],answer:1},
+            {q:"كم سنة عاش النبي ﷺ في المدينة بعد الهجرة؟",options:["٨ سنوات","١٠ سنوات","١٢ سنة","١٣ سنة"],answer:1},
+        ],
+        hard: [
+            {q:"من هو ملك الحبشة الذي استقبل المسلمين المهاجرين؟",options:["هرقل","النجاشي أصحمة","كسرى","المقوقس"],answer:1},
+            {q:"ما اسم المعاهدة التي عُقدت بين النبي ﷺ وأهل المدينة؟",options:["صحيفة المدينة","صلح الحديبية","بيعة العقبة","حلف الفضول"],answer:0},
+            {q:"كم عدد شهداء المسلمين في غزوة بدر؟",options:["١٤ شهيداً","٢٢ شهيداً","٧٠ شهيداً","٤ شهداء"],answer:0},
+            {q:"من قاد جيش المشركين في غزوة أحد؟",options:["أبو جهل","أبو سفيان","خالد بن الوليد","عكرمة بن أبي جهل"],answer:1},
+            {q:"في أي سنة هجرية وقعت غزوة الخندق؟",options:["٣ هـ","٤ هـ","٥ هـ","٦ هـ"],answer:2},
+            {q:"من أشار بحفر الخندق في غزوة الأحزاب؟",options:["أبو بكر","سلمان الفارسي","عمر بن الخطاب","حذيفة بن اليمان"],answer:1},
+            {q:"متى كان صلح الحديبية؟",options:["٤ هـ","٥ هـ","٦ هـ","٧ هـ"],answer:2},
+            {q:"من كسر رباعية النبي ﷺ يوم أحد؟",options:["أبو سفيان","عتبة بن أبي وقاص","وحشي بن حرب","هند بنت عتبة"],answer:1},
+            {q:"ما اسم يهود المدينة الذين نقضوا العهد يوم الأحزاب؟",options:["بنو قينقاع","بنو النضير","بنو قريظة","بنو ثعلبة"],answer:2},
+            {q:"كم عدد المشركين يوم بدر تقريباً؟",options:["حوالي ٥٠٠","حوالي ٧٠٠","حوالي ١٠٠٠","حوالي ١٣٠٠"],answer:2},
+            {q:"من استشهد من قادة المسلمين في معركة مؤتة؟",options:["زيد بن حارثة وجعفر بن أبي طالب وعبد الله بن رواحة","خالد بن الوليد وعمرو بن العاص","أبو عبيدة وسعد بن أبي وقاص","حمزة وعلي"],answer:0},
+            {q:"ما اسم السيف الشهير الذي أُعطي للنبي ﷺ؟",options:["ذو الفقار","الصمصامة","الحسام","البتار"],answer:0},
+            {q:"ما اسم حصار المشركين للمسلمين في شعب أبي طالب؟ كم استمر؟",options:["سنة واحدة","سنتين","ثلاث سنوات","أربع سنوات"],answer:2},
+            {q:"من هي المرأة التي وهبت نفسها للنبي ﷺ فنزلت فيها آية؟",options:["خولة بنت حكيم","أم شريك","ميمونة بنت الحارث","زينب بنت جحش"],answer:0},
+            {q:"ما أول غزوة غزاها النبي ﷺ بنفسه؟",options:["بدر","أحد","الأبواء (ودّان)","بواط"],answer:2},
+            {q:"من الذي قتل حمزة بن عبد المطلب يوم أحد؟",options:["أبو سفيان","هند بنت عتبة","وحشي بن حرب","عكرمة بن أبي جهل"],answer:2},
+            {q:"كم عدد شهداء المسلمين في غزوة أحد؟",options:["١٤ شهيداً","٥٠ شهيداً","٧٠ شهيداً","١٠٠ شهيد"],answer:2},
+            {q:"ما اسم المنافق رأس النفاق في المدينة؟",options:["أبو سفيان","عبد الله بن أبي بن سلول","كعب بن الأشرف","حيي بن أخطب"],answer:1},
+            {q:"في أي سنة هجرية كانت غزوة خيبر؟",options:["٥ هـ","٦ هـ","٧ هـ","٨ هـ"],answer:2},
+            {q:"من فتح باب خيبر بعد أن عجز عنه غيره؟",options:["خالد بن الوليد","عمر بن الخطاب","علي بن أبي طالب","أبو بكر الصديق"],answer:2},
+        ],
+        expert: [
+            {q:"ما المدة التي قضاها النبي ﷺ في غار ثور أثناء الهجرة؟",options:["ليلة واحدة","ليلتين","ثلاث ليال","أسبوع"],answer:2},
+            {q:"من هو دليل النبي ﷺ في طريق الهجرة إلى المدينة؟",options:["عبد الله بن أريقط","عامر بن فهيرة","أنس بن مالك","سراقة بن مالك"],answer:0},
+            {q:"كم كان مهر النبي ﷺ لخديجة رضي الله عنها؟",options:["عشر أواق من ذهب","عشرون بكرة","مئة ناقة","خمسمائة درهم"],answer:1},
+            {q:"من الصحابي الذي أسلم يوم الفتح وكان سيد مكة؟",options:["أبو سفيان بن حرب","عكرمة بن أبي جهل","سهيل بن عمرو","صفوان بن أمية"],answer:0},
+            {q:"ما آخر غزوة غزاها النبي ﷺ بنفسه؟",options:["حنين","تبوك","الطائف","مؤتة"],answer:1},
+            {q:"ما عدد حجج النبي ﷺ بعد الهجرة؟",options:["حجة واحدة","حجتان","ثلاث","أربع"],answer:0},
+            {q:"من حمل كتاب النبي ﷺ إلى هرقل عظيم الروم؟",options:["دحية الكلبي","عمرو بن أمية","حاطب بن أبي بلتعة","عبد الله بن حذافة"],answer:0},
+            {q:"من النبي الذي لقيه محمد ﷺ في السماء السابعة ليلة المعراج؟",options:["موسى","عيسى","إبراهيم","آدم"],answer:2},
+            {q:"كم كان عدد المسلمين في غزوة حنين؟",options:["٣٠٠٠","١٠٠٠٠","١٢٠٠٠","٣٠٠٠٠"],answer:2},
+            {q:"كم كان عمر النبي ﷺ عندما شهد حلف الفضول؟",options:["حوالي ١٥ سنة","حوالي ٢٠ سنة","حوالي ٢٥ سنة","حوالي ٣٠ سنة"],answer:1},
+            {q:"من هو الصحابي الذي أرسل ليعلم أهل اليمن الإسلام؟",options:["معاذ بن جبل","أبو موسى الأشعري","علي بن أبي طالب","معاذ وأبو موسى معاً"],answer:3},
+            {q:"ما هي حجة الوداع؟ في أي سنة كانت؟",options:["٨ هـ","٩ هـ","١٠ هـ","١١ هـ"],answer:2},
+            {q:"من هو آخر من رآه النبي ﷺ من الناس قبل وفاته؟",options:["أبو بكر","عائشة","فاطمة","علي"],answer:1},
+            {q:"كم عدد عمرات النبي ﷺ؟",options:["عمرتان","ثلاث عمرات","أربع عمرات","خمس عمرات"],answer:2},
+            {q:"ما هي السرية التي قادها أسامة بن زيد قبيل وفاة النبي ﷺ؟ إلى أين وُجهت؟",options:["إلى الشام (أرض البلقاء)","إلى اليمن","إلى العراق","إلى مصر"],answer:0},
+            {q:"ما اسم الصلح الذي تم بموجبه الصلح مع قريش ومنعوا المسلمين من العمرة تلك السنة؟",options:["صلح الحديبية","صحيفة المدينة","بيعة الرضوان","ميثاق العقبة"],answer:0},
+            {q:"كم عدد من بايعوا النبي ﷺ تحت الشجرة في بيعة الرضوان تقريباً؟",options:["٣٠٠","٧٠٠","١٤٠٠","٣٠٠٠"],answer:2},
+            {q:"ما سبب غزوة بني المصطلق (المريسيع)؟",options:["نقضهم للعهد","تجمعهم لغزو المدينة","قتلهم لرسول النبي","مساعدتهم لقريش"],answer:1},
+            {q:"من هو أول من كتب الوحي للنبي ﷺ في المدينة؟",options:["زيد بن ثابت","أبي بن كعب","عبد الله بن مسعود","معاوية بن أبي سفيان"],answer:1},
+            {q:"في أي يوم من أيام الأسبوع توفي النبي ﷺ؟",options:["الجمعة","السبت","الاثنين","الأربعاء"],answer:2},
+        ]
+    }
+},
+quran: {
+    name:"القرآن الكريم", icon:"📖", description:"أسئلة عن القرآن وعلومه",
+    questions: {
+        easy: [
+            {q:"كم عدد سور القرآن الكريم؟",options:["١٠٠","١١٠","١١٤","١٢٠"],answer:2},
+            {q:"ما أطول سورة في القرآن؟",options:["آل عمران","النساء","البقرة","الأنعام"],answer:2},
+            {q:"ما أقصر سورة في القرآن؟",options:["الإخلاص","الناس","الكوثر","الفلق"],answer:2},
+            {q:"كم عدد أجزاء القرآن؟",options:["٢٠","٢٥","٣٠","٤٠"],answer:2},
+            {q:"ما السورة التي تسمى قلب القرآن؟",options:["الرحمن","يس","الكهف","البقرة"],answer:1},
+            {q:"كم عدد آيات سورة الفاتحة؟",options:["٥","٦","٧","٨"],answer:2},
+            {q:"ما السورة التي تعدل ثلث القرآن؟",options:["الفاتحة","يس","الإخلاص","الملك"],answer:2},
+            {q:"ما أول سورة في جزء عم؟",options:["النبأ","النازعات","الملك","الجن"],answer:0},
+            {q:"ما آخر سورة في القرآن؟",options:["الفلق","الإخلاص","الناس","المسد"],answer:2},
+            {q:"ما أعظم آية في القرآن؟",options:["آية الكرسي","آية النور","آية الدين","أول الفاتحة"],answer:0},
+            {q:"في أي شهر نزل القرآن الكريم؟",options:["رجب","شعبان","رمضان","ذو الحجة"],answer:2},
+            {q:"ما أول سورة يتعلمها المسلم عادةً؟",options:["البقرة","الفاتحة","الإخلاص","الناس"],answer:1},
+            {q:"ما السورة التي يُقرأ منها يوم الجمعة؟",options:["يس","الكهف","الملك","الرحمن"],answer:1},
+            {q:"ما اسم السور الثلاث الأخيرة في القرآن؟",options:["المعوذتان والإخلاص","الفلق والناس والمسد","الإخلاص والفلق والناس","النصر والمسد والإخلاص"],answer:2},
+            {q:"كم عدد أحزاب القرآن الكريم؟",options:["٣٠","٦٠","١٢٠","٢٤٠"],answer:1},
+            {q:"ما هي سورة الفاتحة الأخرى لها؟",options:["السبع المثاني","أم الكتاب","الحمد","كل ما سبق"],answer:3},
+            {q:"أين نزل القرآن الكريم أولاً؟",options:["المسجد الحرام","غار حراء","المدينة","جبل النور"],answer:1},
+            {q:"ما اسم الملك الذي نزل بالوحي على النبي ﷺ؟",options:["ميكائيل","إسرافيل","جبريل","عزرائيل"],answer:2},
+            {q:"هل القرآن نزل دفعة واحدة أم مُنجّماً (متفرقاً)؟",options:["دفعة واحدة","منجماً على ٢٣ سنة","على ١٠ سنوات","على ٣ سنوات"],answer:1},
+            {q:"ما الفرق بين السور المكية والمدنية؟",options:["المكية نزلت بمكة والمدنية بالمدينة","المكية قبل الهجرة والمدنية بعدها","لا فرق","المكية طويلة والمدنية قصيرة"],answer:1},
+        ],
+        medium: [
+            {q:"ما السورة التي لا تبدأ بالبسملة؟",options:["الفاتحة","البقرة","التوبة","الإخلاص"],answer:2},
+            {q:"ما السورة التي ذُكرت فيها البسملة مرتين؟",options:["الفاتحة","النمل","يوسف","الكهف"],answer:1},
+            {q:"كم عدد السجدات في القرآن؟",options:["١٠","١٤","١٥","١٢"],answer:2},
+            {q:"كم مرة ذُكر اسم (محمد) في القرآن؟",options:["٢","٤","٥","٧"],answer:1},
+            {q:"في أي سورة وردت قصة أصحاب الكهف؟",options:["الأنبياء","الكهف","القصص","يس"],answer:1},
+            {q:"ما أطول آية في القرآن؟",options:["آية الكرسي","آية الدين","آية النور","آية المواريث"],answer:1},
+            {q:"كم مرة ذُكرت مريم عليها السلام في القرآن؟",options:["١٥","٢٤","٣٤","١٠"],answer:2},
+            {q:"ما السورة الملقبة بسنام القرآن؟",options:["البقرة","آل عمران","يس","الرحمن"],answer:0},
+            {q:"كم عدد الأنبياء المذكورين في القرآن؟",options:["٢٠","٢٥","٣٠","١٨"],answer:1},
+            {q:"كم عدد الحروف المقطعة في أوائل السور؟",options:["١٠","١٤","٢٠","٢٨"],answer:1},
+            {q:"ما أول سورة نزلت كاملة؟",options:["الفاتحة","العلق","المدثر","المسد"],answer:0},
+            {q:"ما السورة التي تسمى عروس القرآن؟",options:["يس","الرحمن","مريم","النور"],answer:1},
+            {q:"ما السورة التي فيها قصة يوسف عليه السلام كاملة؟",options:["البقرة","يوسف","الأنبياء","القصص"],answer:1},
+            {q:"كم سورة تبدأ بـ (الحمد لله)؟",options:["٣ سور","٤ سور","٥ سور","٦ سور"],answer:2},
+            {q:"ما السورة التي تُقرأ للحفظ من عذاب القبر؟",options:["البقرة","الملك (تبارك)","يس","الكهف"],answer:1},
+            {q:"في أي سورة ذُكرت قصة موسى مع الخضر؟",options:["البقرة","طه","الكهف","القصص"],answer:2},
+            {q:"ما هي السورة التي سُميت بسورة النساء الصغرى؟",options:["مريم","الطلاق","المجادلة","الممتحنة"],answer:1},
+            {q:"في أي سورة وردت آية الكرسي؟",options:["آل عمران","البقرة","الأنعام","الأعراف"],answer:1},
+            {q:"ما هي السورة التي تحفظ قارئها بين الجمعتين؟",options:["يس","الملك","الكهف","البقرة"],answer:2},
+            {q:"ما عدد السور التي تبدأ بـ (قل)؟",options:["٣","٤","٥","٦"],answer:2},
+        ],
+        hard: [
+            {q:"كم عدد السور المكية في القرآن تقريباً؟",options:["٦٠","٧٠","٨٦","٩٠"],answer:2},
+            {q:"كم عدد السور المدنية في القرآن تقريباً؟",options:["٢٠","٢٨","٣٠","٤٠"],answer:1},
+            {q:"ما السورة التي تسمى الفاضحة لفضحها المنافقين؟",options:["الأحزاب","التوبة","المنافقون","الحشر"],answer:1},
+            {q:"في أي سورة ذُكرت قصة طالوت وجالوت؟",options:["آل عمران","البقرة","الأنفال","الصافات"],answer:1},
+            {q:"ما السورة التي بدأت بالتسبيح وختمت بالتسبيح؟",options:["الحديد","الحشر","الصف","الجمعة"],answer:1},
+            {q:"كم مرة ذُكر لفظ الجلالة (الله) في القرآن تقريباً؟",options:["١٠٠٠","٢٦٩٨","٥٠٠٠","٣١٥٠"],answer:1},
+            {q:"ما السورة التي نزلت جملة واحدة؟",options:["الفاتحة","المدثر","الأنعام","المرسلات"],answer:2},
+            {q:"ما السورة التي فيها سجدتان؟",options:["آل عمران","الحج","السجدة","فصلت"],answer:1},
+            {q:"ما عدد كلمات سورة الفاتحة؟",options:["٢٥","٢٩","٣١","٢٧"],answer:0},
+            {q:"آخر سورة نزلت في المدينة؟",options:["النصر","التوبة","المائدة","الحجرات"],answer:0},
+            {q:"في أي سورة وردت آية المواريث بالتفصيل؟",options:["البقرة","آل عمران","النساء","المائدة"],answer:2},
+            {q:"ما أقصر سورة من حيث عدد الكلمات؟",options:["الكوثر","العصر","الإخلاص","النصر"],answer:0},
+            {q:"كم عدد السور التي سُميت بأسماء أنبياء؟",options:["٤","٦","٥","٨"],answer:1},
+            {q:"ما السورة التي ذُكر فيها ذو القرنين؟",options:["البقرة","يوسف","الكهف","الأنبياء"],answer:2},
+            {q:"ما السورة التي تسمى المنجية من عذاب القبر؟",options:["يس","الملك","السجدة","الكهف"],answer:1},
+            {q:"في أي سورة ورد قوله تعالى: اليوم أكملت لكم دينكم؟",options:["البقرة","آل عمران","المائدة","التوبة"],answer:2},
+            {q:"ما السورة التي فيها آيتان هما أحدث آيات القرآن نزولاً عند بعض العلماء؟",options:["البقرة (آخر آيتين)","المائدة","التوبة","النصر"],answer:0},
+            {q:"كم مرة ذُكر اسم (عيسى) في القرآن؟",options:["١١ مرة","٢٥ مرة","٣٣ مرة","٧ مرات"],answer:1},
+            {q:"ما هي السور المسبّحات (التي تبدأ بالتسبيح)؟ كم عددها؟",options:["٥ سور","٧ سور","٣ سور","٩ سور"],answer:1},
+            {q:"ما السورة التي تسمى (قلب القرآن) ويُستحب قراءتها على المحتضر؟",options:["الفاتحة","البقرة","يس","الرحمن"],answer:2},
+        ],
+        expert: [
+            {q:"كم عدد آيات القرآن عند أهل الكوفة؟",options:["٦٢٠٠","٦٢٣٦","٦٣٤٨","٦٦٦٦"],answer:1},
+            {q:"ما الآية التي جمعت كل حروف العربية الـ ٢٨؟",options:["آية الكرسي","الآية ٢٩ من سورة الفتح","آية الدين","لا توجد"],answer:1},
+            {q:"كم مرة ذُكرت كلمة (يوم) في القرآن؟",options:["٢٠٠","٣٦٥","٤٠٠","١٠٠"],answer:1},
+            {q:"ما السورة التي سُميت بأحد أركان الإسلام؟",options:["الصلاة","الحج","الزكاة","الصوم"],answer:1},
+            {q:"ما أول آية نزلت في القتال؟",options:["أذن للذين يقاتلون بأنهم ظلموا","وقاتلوا في سبيل الله","كتب عليكم القتال","انفروا خفافاً وثقالاً"],answer:0},
+            {q:"في أي سورة ذُكرت غزوة بدر بالاسم؟",options:["الأنفال","آل عمران","التوبة","محمد"],answer:1},
+            {q:"كم مرة ذُكرت (الدنيا) و(الآخرة) في القرآن؟",options:["١١٥ و ١١٥","١٠٠ و ٢٠٠","٢٠٠ و ١٠٠","٥٠ و ٥٠"],answer:0},
+            {q:"ما السورة التي ذُكر فيها اسم (أحمد)؟",options:["محمد","الصف","الفتح","الأحزاب"],answer:1},
+            {q:"ما هو ترتيب نزول سورة البقرة بين السور المدنية؟",options:["أول سورة مدنية","خامس سورة مدنية","أول ما نزل منها آيات ثم اكتملت على مدى سنوات","آخر سورة مدنية"],answer:2},
+            {q:"كم مرة ذُكرت كلمة (قل) في القرآن كأمر إلهي؟",options:["حوالي ١٠٠ مرة","حوالي ٢٠٠ مرة","حوالي ٣٣٢ مرة","حوالي ٥٠٠ مرة"],answer:2},
+            {q:"ما السورة التي تسمى (سورة بني إسرائيل)؟",options:["البقرة","الإسراء","طه","الأنبياء"],answer:1},
+            {q:"كم مرة ذُكرت كلمة (الشهر) في القرآن؟",options:["٧ مرات","١٢ مرة","٢٠ مرة","٣٠ مرة"],answer:1},
+            {q:"ما أكثر قصة تكرّرت في القرآن؟",options:["قصة إبراهيم","قصة موسى","قصة نوح","قصة عيسى"],answer:1},
+            {q:"ما هي الطواسين؟",options:["سور تبدأ بـ (طسم) و(طس)","سور تبدأ بـ (طه)","سور مكية فقط","أجزاء القرآن"],answer:0},
+            {q:"كم مرة ذُكر (إبليس) في القرآن؟",options:["٧ مرات","١١ مرة","١٥ مرة","٢٠ مرة"],answer:1},
+            {q:"ما السورة الوحيدة التي ذُكر فيها اسم (حامان)؟",options:["طه","القصص وغافر","البقرة","الأنبياء"],answer:1},
+            {q:"ما هي آخر آية نزلت من القرآن على أرجح الأقوال؟",options:["إذا جاء نصر الله","اليوم أكملت لكم دينكم","واتقوا يوماً ترجعون فيه إلى الله","آية الربا في البقرة"],answer:2},
+            {q:"كم عدد حروف أطول كلمة في القرآن (فأسقيناكموه)؟",options:["٩ حروف","١١ حرفاً","١٣ حرفاً","٧ حروف"],answer:1},
+            {q:"ما هي السورة التي تسمى (التوديع)؟",options:["التوبة","المائدة","النصر","الممتحنة"],answer:2},
+            {q:"ما اسم العلم الذي يبحث في أسباب نزول الآيات؟",options:["علم التفسير","علم أسباب النزول","علم الناسخ والمنسوخ","علم القراءات"],answer:1},
+        ]
+    }
+},
+sahaba: {
+    name:"الصحابة", icon:"⭐", description:"أسئلة عن صحابة رسول الله ﷺ",
+    questions: {
+        easy: [
+            {q:"من أول الخلفاء الراشدين؟",options:["عمر","عثمان","أبو بكر الصديق","علي"],answer:2},
+            {q:"من هو الفاروق؟",options:["أبو بكر","عمر بن الخطاب","عثمان","علي"],answer:1},
+            {q:"من هو ذو النورين؟",options:["أبو بكر","عمر","عثمان بن عفان","علي"],answer:2},
+            {q:"من أول مؤذن في الإسلام؟",options:["ابن أم مكتوم","بلال بن رباح","أبو محذورة","سعد القرظ"],answer:1},
+            {q:"من خادم رسول الله ﷺ؟",options:["بلال","أنس بن مالك","زيد بن حارثة","أبو هريرة"],answer:1},
+            {q:"كم عدد المبشرين بالجنة؟",options:["٤","٨","١٠","١٢"],answer:2},
+            {q:"من سيف الله المسلول؟",options:["خالد بن الوليد","عمرو بن العاص","سعد بن أبي وقاص","أبو عبيدة"],answer:0},
+            {q:"من أسد الله؟",options:["علي","حمزة بن عبد المطلب","الزبير","طلحة"],answer:1},
+            {q:"من أكثر الصحابة رواية للحديث؟",options:["ابن عمر","أبو هريرة","أنس بن مالك","عائشة"],answer:1},
+            {q:"من شاعر رسول الله ﷺ؟",options:["كعب بن مالك","حسان بن ثابت","عبد الله بن رواحة","لبيد"],answer:1},
+            {q:"من أول شهيدة في الإسلام؟",options:["خديجة","سمية بنت خياط","فاطمة","أسماء"],answer:1},
+            {q:"من أبو المساكين؟",options:["أبو ذر","جعفر بن أبي طالب","أبو هريرة","ابن مسعود"],answer:1},
+            {q:"من رابع الخلفاء الراشدين؟",options:["عمر","عثمان","معاوية","علي بن أبي طالب"],answer:3},
+            {q:"من الصحابي الملقب بالصدّيق؟",options:["عمر","أبو بكر","عثمان","علي"],answer:1},
+            {q:"ما العلاقة بين علي بن أبي طالب والنبي ﷺ؟",options:["عمه","ابن عمه وصهره","أخوه","ابن خاله"],answer:1},
+            {q:"من الصحابي الذي تبناه النبي ﷺ قبل تحريم التبني؟",options:["أنس بن مالك","زيد بن حارثة","أسامة بن زيد","بلال"],answer:1},
+            {q:"من أول خليفة بعد وفاة النبي ﷺ؟",options:["عمر","علي","أبو بكر","عثمان"],answer:2},
+            {q:"من ذات النطاقين؟",options:["عائشة","أسماء بنت أبي بكر","فاطمة","خديجة"],answer:1},
+            {q:"كم كانت مدة خلافة أبي بكر الصديق تقريباً؟",options:["سنة واحدة","سنتان وأشهر","خمس سنوات","عشر سنوات"],answer:1},
+            {q:"من كاتب الوحي الأشهر؟",options:["أبو بكر","زيد بن ثابت","أبي بن كعب","معاوية"],answer:1},
+        ],
+        medium: [
+            {q:"من حواري رسول الله ﷺ؟",options:["طلحة","الزبير بن العوام","سعد بن أبي وقاص","أبو ذر"],answer:1},
+            {q:"من الصحابي الذي اهتز لموته عرش الرحمن؟",options:["عمر","سعد بن معاذ","حمزة","مصعب بن عمير"],answer:1},
+            {q:"من أول سفير في الإسلام؟",options:["عمرو بن العاص","مصعب بن عمير","جعفر بن أبي طالب","ابن مسعود"],answer:1},
+            {q:"من ترجمان القرآن؟",options:["ابن مسعود","عبد الله بن عباس","أبي بن كعب","زيد بن ثابت"],answer:1},
+            {q:"من جمع القرآن في عهد أبي بكر؟",options:["أبي بن كعب","ابن مسعود","زيد بن ثابت","ابن عباس"],answer:2},
+            {q:"من ذو الجناحين؟",options:["علي","جعفر بن أبي طالب","الزبير","حمزة"],answer:1},
+            {q:"من حِبّ رسول الله ﷺ؟",options:["علي","أنس","أسامة بن زيد","زيد بن حارثة"],answer:2},
+            {q:"من أمين هذه الأمة؟",options:["أبو بكر","أبو عبيدة بن الجراح","سعد بن أبي وقاص","عبد الرحمن بن عوف"],answer:1},
+            {q:"من أول من هاجر إلى الحبشة من الرجال؟",options:["عثمان بن عفان","جعفر","مصعب","الزبير"],answer:0},
+            {q:"من سيد القراء؟",options:["زيد بن ثابت","أبي بن كعب","ابن مسعود","سالم مولى أبي حذيفة"],answer:1},
+            {q:"كم سنة دامت خلافة عمر بن الخطاب تقريباً؟",options:["٥ سنوات","١٠ سنوات وأشهر","١٥ سنة","٢٠ سنة"],answer:1},
+            {q:"من الصحابي الملقب بسيد الشهداء؟",options:["عمر","حمزة بن عبد المطلب","مصعب بن عمير","سعد بن معاذ"],answer:1},
+            {q:"من الصحابية التي قتلت سبعة من المشركين يوم اليمامة؟",options:["خولة بنت الأزور","نسيبة بنت كعب (أم عمارة)","أسماء بنت أبي بكر","هند بنت عتبة"],answer:1},
+            {q:"من الصحابي الذي غسلته الملائكة؟",options:["حمزة","حنظلة بن أبي عامر","مصعب","سعد بن معاذ"],answer:1},
+            {q:"من الصحابي الوحيد الذي ذُكر اسمه في القرآن؟",options:["أبو بكر","عمر","زيد بن حارثة","بلال"],answer:2},
+            {q:"من أول من رمى بسهم في سبيل الله؟",options:["سعد بن أبي وقاص","علي","حمزة","طلحة"],answer:0},
+            {q:"من الصحابي الملقب بذي الشهادتين؟",options:["أنس بن مالك","خزيمة بن ثابت","أبو هريرة","ابن عباس"],answer:1},
+            {q:"من أم المؤمنين التي كانت أكثرهن علماً بالفقه؟",options:["حفصة","عائشة","أم سلمة","زينب"],answer:1},
+            {q:"من الصحابي الذي عرف بالجود وسمي بحر الجود؟",options:["عثمان بن عفان","عبد الرحمن بن عوف","طلحة بن عبيد الله","عبد الله بن جعفر"],answer:3},
+            {q:"كم حديثاً روى أبو هريرة تقريباً؟",options:["٢٠٠٠","٣٠٠٠","٥٣٧٤","٧٠٠٠"],answer:2},
+        ],
+        hard: [
+            {q:"من آخر المهاجرين وفاة؟",options:["سعد بن أبي وقاص","ابن عمر","أبو هريرة","ابن عباس"],answer:0},
+            {q:"من الصحابي الملقب بالطيب المطيّب؟",options:["عمار بن ياسر","سلمان الفارسي","بلال","صهيب"],answer:0},
+            {q:"كم عدد أبناء النبي ﷺ من الذكور؟",options:["اثنان","ثلاثة","أربعة","خمسة"],answer:1},
+            {q:"من أول من جهر بالقرآن في مكة؟",options:["أبو بكر","بلال","عبد الله بن مسعود","عمر"],answer:2},
+            {q:"من الصحابية التي دافعت عن النبي ﷺ يوم أحد؟",options:["أم سلمة","نسيبة بنت كعب","أسماء بنت أبي بكر","هند بنت عتبة"],answer:1},
+            {q:"من أصغر من شهد بدراً؟",options:["عمير بن أبي وقاص","أسامة بن زيد","ابن عمر","البراء بن عازب"],answer:0},
+            {q:"من الصحابي الذي أسلم عند قراءة سورة طه؟",options:["أبو بكر","عمر بن الخطاب","حمزة","سعد"],answer:1},
+            {q:"من الذي دعا له النبي ﷺ بقوة الحفظ فلم ينسَ شيئاً بعدها؟",options:["ابن عباس","أبو هريرة","أنس","زيد بن ثابت"],answer:1},
+            {q:"من القائد الذي أُرسل لقتال مسيلمة الكذاب؟",options:["خالد بن الوليد","عمرو بن العاص","سعد بن أبي وقاص","أبو عبيدة"],answer:0},
+            {q:"كم عدد الأنصار في بيعة العقبة الأولى؟",options:["٦","١٢","٢٠","٧٣"],answer:1},
+            {q:"من آخر الخلفاء الراشدين استشهاداً؟",options:["عمر","عثمان","علي","الحسن بن علي"],answer:2},
+            {q:"من الذي قاد المسلمين في معركة مؤتة بعد استشهاد القادة الثلاثة؟",options:["عبد الله بن رواحة","خالد بن الوليد","أسامة بن زيد","عمرو بن العاص"],answer:1},
+            {q:"من فارس رسول الله ﷺ؟",options:["خالد بن الوليد","أبو قتادة الأنصاري","المقداد بن عمرو","سعد بن أبي وقاص"],answer:1},
+            {q:"من سيد الفوارس؟",options:["خالد بن الوليد","أبو موسى الأشعري","الزبير بن العوام","المقداد"],answer:0},
+            {q:"من الصحابي الذي لُقب بالأسود؟ وهل هو بلال؟",options:["نعم هو بلال","المقداد بن الأسود","لا يوجد صحابي بهذا اللقب","عمار بن ياسر"],answer:1},
+            {q:"من الصحابي الذي أوصاه النبي ﷺ بعدم الغضب؟",options:["أبو الدرداء","أبو هريرة","رجل لم يُسمَّ في الرواية الأشهر","أنس بن مالك"],answer:2},
+            {q:"من الصحابي الذي قال عنه النبي ﷺ: ما أظلت الخضراء ولا أقلت الغبراء أصدق من أبي ذر؟",options:["أبو بكر","أبو ذر الغفاري","عمار","سلمان"],answer:1},
+            {q:"كم سنة دامت خلافة عثمان بن عفان تقريباً؟",options:["٦ سنوات","١٢ سنة","٨ سنوات","١٥ سنة"],answer:1},
+            {q:"من الصحابي الذي وُلد في جوف الكعبة على قول بعض أهل العلم؟",options:["عمر بن الخطاب","علي بن أبي طالب","حمزة بن عبد المطلب","حكيم بن حزام"],answer:3},
+            {q:"من هو أوس بن ثابت وما علاقته بحسان بن ثابت؟",options:["أبوه","أخوه","ابنه","لا قرابة بينهما"],answer:1},
+        ],
+        expert: [
+            {q:"من الثلاثة الذين تخلفوا عن تبوك وتاب الله عليهم؟",options:["كعب بن مالك ومرارة بن الربيع وهلال بن أمية","حسان وعبد الله بن أبي وأبو لبابة","أبو ذر وأبو هريرة وأنس","طلحة والزبير وسعد"],answer:0},
+            {q:"من بايع عن عثمان يوم الحديبية؟",options:["أبو بكر","النبي ﷺ بايع بيده عن عثمان","علي","عمر"],answer:1},
+            {q:"كم عدد من شهدوا بيعة العقبة الثانية؟",options:["١٢","٤٠","٧٣ رجلاً وامرأتان","١٠٠"],answer:2},
+            {q:"من أول مولود للمهاجرين في المدينة؟",options:["عبد الله بن الزبير","محمد بن أبي بكر","الحسن بن علي","ابن عمر"],answer:0},
+            {q:"من كتب صلح الحديبية؟",options:["زيد بن ثابت","معاوية","علي بن أبي طالب","عبد الله بن رواحة"],answer:2},
+            {q:"كم سنة خدم أنس بن مالك النبي ﷺ؟",options:["٥","١٠","١٥","٨"],answer:1},
+            {q:"من الصحابي الذي قال عنه عمر: لو كان حياً لوليته الخلافة؟",options:["أبو عبيدة بن الجراح","خالد بن الوليد","سالم مولى أبي حذيفة","معاذ بن جبل"],answer:3},
+            {q:"كم عدد الصحابة الذين رُوي عنهم الحديث؟",options:["حوالي ٥٠٠","حوالي ١٠٠٠","حوالي ١٥٠٠","حوالي ٢٠٠٠"],answer:2},
+            {q:"من أول قاضٍ في الإسلام عيّنه النبي ﷺ؟",options:["عمر بن الخطاب","علي بن أبي طالب","معاذ بن جبل","عبد الله بن مسعود"],answer:0},
+            {q:"من الصحابي الذي عُرف بأنه أعلم الأمة بالحلال والحرام؟",options:["ابن عباس","ابن مسعود","معاذ بن جبل","عمر بن الخطاب"],answer:2},
+            {q:"من الصحابي الذي قُطعت يده يوم مؤتة ثم الأخرى وهو يحمل الراية؟",options:["زيد بن حارثة","جعفر بن أبي طالب","عبد الله بن رواحة","خالد بن الوليد"],answer:1},
+            {q:"من هو مولى رسول الله ﷺ الذي شهد بدراً؟",options:["بلال","زيد بن حارثة","أبو رافع","ثوبان"],answer:1},
+            {q:"من الصحابي الذي كان آخر من مات ممن شهد بدراً؟",options:["سعد بن أبي وقاص","أبو اليسر كعب بن عمرو","أنس بن مالك","أبو سعيد الخدري"],answer:1},
+            {q:"كم عدد المهاجرين الأوائل إلى الحبشة في الهجرة الأولى؟",options:["١٠","١٢ رجلاً و٤ نساء","٢٠","٨٣"],answer:1},
+            {q:"من الصحابي الذي أمره أبو بكر بجمع القرآن وتردد أولاً؟",options:["أبي بن كعب","عبد الله بن مسعود","زيد بن ثابت","معاذ بن جبل"],answer:2},
+            {q:"من الصحابي الذي يُقال إنه أول من دوّن الحديث النبوي كتابةً؟",options:["أبو هريرة","عبد الله بن عمرو بن العاص","أنس بن مالك","ابن عباس"],answer:1},
+            {q:"من هو صاحب السر (الذي أخبره النبي ﷺ بأسماء المنافقين)؟",options:["أبو بكر","حذيفة بن اليمان","عمار بن ياسر","أبو ذر"],answer:1},
+            {q:"من الصحابي الذي فتح مصر؟",options:["خالد بن الوليد","سعد بن أبي وقاص","عمرو بن العاص","أبو عبيدة"],answer:2},
+            {q:"كم عدد الصحابيات اللاتي بايعن في بيعة العقبة الثانية؟",options:["لا توجد نساء","امرأة واحدة","امرأتان","خمس نساء"],answer:2},
+            {q:"من آخر من توفي من أمهات المؤمنين؟",options:["عائشة","أم سلمة","ميمونة","صفية"],answer:1},
+        ]
+    }
+},
+ahkam: {
+    name:"أحكام وعبادات", icon:"🤲", description:"أسئلة فقهية وأحكام شرعية",
+    questions: {
+        easy: [
+            {q:"كم عدد أركان الإسلام؟",options:["٤","٥","٦","٧"],answer:1},
+            {q:"كم عدد أركان الإيمان؟",options:["٤","٥","٦","٧"],answer:2},
+            {q:"كم عدد الصلوات المفروضة يومياً؟",options:["٣","٤","٥","٧"],answer:2},
+            {q:"كم ركعة في صلاة الظهر؟",options:["٢","٣","٤","٥"],answer:2},
+            {q:"كم عدد أشواط الطواف؟",options:["٣","٥","٧","٩"],answer:2},
+            {q:"ما السورة الواجبة في كل ركعة؟",options:["الإخلاص","الفاتحة","البقرة","الناس"],answer:1},
+            {q:"كم مرة يجب الحج في العمر؟",options:["مرة","مرتين","ثلاث","كل عام"],answer:0},
+            {q:"في أي شهر يصوم المسلمون؟",options:["شعبان","رمضان","محرم","رجب"],answer:1},
+            {q:"كم ركعة في صلاة المغرب؟",options:["٢","٣","٤","٥"],answer:1},
+            {q:"كم ركعة في صلاة الفجر؟",options:["٢","٣","٤","١"],answer:0},
+            {q:"ما أول ما يُحاسب عليه العبد يوم القيامة؟",options:["الزكاة","الصيام","الصلاة","الحج"],answer:2},
+            {q:"ما الركن الخامس من أركان الإسلام؟",options:["الزكاة","الصيام","الحج","الصلاة"],answer:2},
+            {q:"ما الركن الأول من أركان الإسلام؟",options:["الصلاة","الشهادتان","الصيام","الحج"],answer:1},
+            {q:"كم ركعة في صلاة العشاء؟",options:["٢","٣","٤","٥"],answer:2},
+            {q:"ما هو الوضوء؟",options:["الاغتسال الكامل","غسل أعضاء مخصوصة للصلاة","التيمم","الاستنجاء"],answer:1},
+            {q:"ما أول أعمال الوضوء؟",options:["غسل الوجه","غسل اليدين","النية وغسل الكفين","مسح الرأس"],answer:2},
+            {q:"كم مرة يُغسل كل عضو في الوضوء كحد أدنى؟",options:["مرة واحدة","مرتين","ثلاث مرات","أربع مرات"],answer:0},
+            {q:"ما هو التيمم؟",options:["الوضوء بالماء","التطهر بالتراب عند فقد الماء","الاغتسال","غسل الميت"],answer:1},
+            {q:"ما هي الشهادتان؟",options:["أشهد أن لا إله إلا الله وأن محمداً رسول الله","لا إله إلا الله","الله أكبر","سبحان الله"],answer:0},
+            {q:"هل يجوز الأكل والشرب أثناء الصيام نهاراً؟",options:["نعم","لا","في حالات خاصة فقط","قبل الظهر فقط"],answer:1},
+        ],
+        medium: [
+            {q:"في أي سنة فُرض الصيام؟",options:["١ هـ","٢ هـ","٣ هـ","٥ هـ"],answer:1},
+            {q:"ما نصاب زكاة الذهب؟",options:["٥٠ غ","٧٥ غ","٨٥ غ","١٠٠ غ"],answer:2},
+            {q:"كم تكبيرة في صلاة العيد الأولى (عند الحنابلة)؟",options:["٥","٧","٩","٣"],answer:1},
+            {q:"ما مقدار زكاة الفطر؟",options:["صاع من طعام","نصف صاع","صاعان","ثلاثة آصع"],answer:0},
+            {q:"ما الصلاة الوسطى على قول كثير من العلماء؟",options:["الظهر","العصر","المغرب","الفجر"],answer:1},
+            {q:"ما شروط وجوب الحج؟",options:["الإسلام فقط","الإسلام والبلوغ","الإسلام والبلوغ والعقل والاستطاعة","الإسلام والمال"],answer:2},
+            {q:"متى يبدأ وقت صلاة الفجر؟",options:["قبل الشمس بساعة","عند الفجر الصادق","بعد منتصف الليل","عند الفجر الكاذب"],answer:1},
+            {q:"كم أيام التشريق؟",options:["يوم","يومان","ثلاثة","أربعة"],answer:2},
+            {q:"ما حكم صيام يوم العيد؟",options:["مستحب","مكروه","محرم","جائز"],answer:2},
+            {q:"كم ركعات التراويح؟",options:["٨ فقط","٨ أو ٢٠","٢٠ فقط","١٢"],answer:1},
+            {q:"ما هو يوم عرفة؟",options:["٨ ذو الحجة","٩ ذو الحجة","١٠ ذو الحجة","١١ ذو الحجة"],answer:1},
+            {q:"ما حكم صلاة الجماعة للرجال عند أكثر العلماء؟",options:["فرض عين","سنة مؤكدة","واجبة","مستحبة"],answer:2},
+            {q:"كم عدد أركان الوضوء؟",options:["٤","٦","٨","١٠"],answer:1},
+            {q:"ما هي نواقض الوضوء الأساسية؟",options:["الخارج من السبيلين والنوم العميق","الأكل والشرب","الكلام","المشي"],answer:0},
+            {q:"كم عدد السعي بين الصفا والمروة؟",options:["٣ أشواط","٥ أشواط","٧ أشواط","٩ أشواط"],answer:2},
+            {q:"متى يبدأ صيام رمضان؟",options:["بعد رؤية هلال رمضان","في أول يوم من شعبان","بعد ليلة القدر","يوم عرفة"],answer:0},
+            {q:"ما حكم صيام ستة أيام من شوال؟",options:["واجب","سنة مستحبة","مكروه","محرم"],answer:1},
+            {q:"ما هو الاعتكاف؟",options:["صلاة الليل","لزوم المسجد بنية التعبد","الحج","صيام النافلة"],answer:1},
+            {q:"ما هو أفضل الذكر بعد القرآن؟",options:["الاستغفار","الصلاة على النبي","لا إله إلا الله","سبحان الله"],answer:2},
+            {q:"ما هي صلاة الوتر؟",options:["صلاة فريضة","صلاة تُختم بها صلاة الليل بركعة واحدة أو أكثر","صلاة العيد","صلاة الكسوف"],answer:1},
+        ],
+        hard: [
+            {q:"ما نصاب زكاة الفضة بالغرامات تقريباً؟",options:["٤٠٠ غ","٥٩٥ غ","٨٥ غ","١٠٠٠ غ"],answer:1},
+            {q:"ما مقدار زكاة المال إذا بلغ النصاب وحال عليه الحول؟",options:["٥٪","٢.٥٪","١٠٪","٢٠٪"],answer:1},
+            {q:"ما هي الأشهر الحرم؟",options:["رجب وشعبان ورمضان وشوال","ذو القعدة وذو الحجة ومحرم ورجب","محرم وصفر وربيع الأول ورجب","شوال وذو القعدة وذو الحجة ومحرم"],answer:1},
+            {q:"ما كفارة الجماع في نهار رمضان؟",options:["صيام ثلاثة أيام","عتق رقبة أو صيام شهرين أو إطعام ستين مسكيناً","إطعام عشرة مساكين","لا كفارة"],answer:1},
+            {q:"متى يجب دفع زكاة الفطر؟",options:["أول رمضان","آخر يوم من رمضان","قبل صلاة العيد","بعد صلاة العيد"],answer:2},
+            {q:"كم المسافة التي يجوز فيها قصر الصلاة عند الجمهور تقريباً؟",options:["٤٠ كم","٨٠ كم","١٢٠ كم","٢٠٠ كم"],answer:1},
+            {q:"ما عدد مصارف الزكاة في القرآن؟",options:["٥","٦","٧","٨"],answer:3},
+            {q:"ما حكم السعي بين الصفا والمروة في الحج؟",options:["ركن عند الجمهور","واجب","سنة مؤكدة","مستحب"],answer:0},
+            {q:"ما حكم من نسي ركعة وسلّم؟",options:["يعيد الصلاة","يأتي بها ويسجد للسهو","لا شيء عليه","يسجد للسهو فقط"],answer:1},
+            {q:"كم عدد أركان الصلاة؟",options:["١٠","١٤","٨","٦"],answer:1},
+            {q:"ما حكم من أفطر ناسياً في رمضان؟",options:["يقضي ويكفر","يقضي فقط","صيامه صحيح ولا شيء عليه","يكفر فقط"],answer:2},
+            {q:"ما الفرق بين الفرض والواجب عند الجمهور؟",options:["لا فرق بينهما","الفرض آكد","الواجب آكد","الفرض سنة"],answer:0},
+            {q:"ما هي صلاة الخسوف؟ متى تُصلى؟",options:["عند خسوف القمر","عند كسوف الشمس","عند الزلازل","عند الأمطار الشديدة"],answer:0},
+            {q:"ما حكم تأخير الزكاة بعد وجوبها بلا عذر؟",options:["جائز","مكروه","حرام","مستحب"],answer:2},
+            {q:"ما هو نصاب زكاة الغنم السائمة؟",options:["٢٠ رأساً","٤٠ رأساً","١٠٠ رأس","٢٠٠ رأس"],answer:1},
+            {q:"ما هي الشروط الأساسية لصحة الصلاة؟",options:["دخول الوقت واستقبال القبلة والطهارة","النية فقط","الوضوء فقط","الطهارة والنية"],answer:0},
+            {q:"ما حكم الجهر بالقراءة في صلاة الظهر والعصر؟",options:["واجب","مستحب","يُسرّ بالقراءة (لا جهر)","مكروه"],answer:2},
+            {q:"ما هي صلاة الاستخارة؟",options:["صلاة فريضة","ركعتان يُصليهما طالباً الخيرة من الله","صلاة الجنازة","صلاة العيد"],answer:1},
+            {q:"ما حكم صيام يوم عاشوراء؟",options:["واجب","سنة مؤكدة","مكروه","محرم"],answer:1},
+            {q:"ما هو الحِداد وما مدته للمرأة المتوفى عنها زوجها؟",options:["شهر","ثلاثة أشهر","أربعة أشهر وعشرة أيام","سنة"],answer:2},
+        ],
+        expert: [
+            {q:"ما الفرق بين الركن والواجب في الحج إذا تُرك؟",options:["الركن لا يصح بدونه والواجب يُجبر بدم","كلاهما يبطل الحج","كلاهما يُجبر بدم","لا فرق"],answer:0},
+            {q:"ما محظورات الإحرام للرجل في اللباس؟",options:["لبس المخيط فقط","لبس المخيط وتغطية الرأس","لبس المخيط وتغطية الرأس والنعلين","تغطية الرأس فقط"],answer:1},
+            {q:"متى يدخل وقت رمي جمرة العقبة يوم النحر؟",options:["بعد طلوع الشمس فقط","بعد منتصف ليلة النحر عند بعض العلماء","بعد صلاة الفجر","في أي وقت"],answer:1},
+            {q:"ما كفارة اليمين؟",options:["صيام ثلاثة أيام فقط","إطعام عشرة مساكين أو كسوتهم أو تحرير رقبة فإن لم يجد فصيام ثلاثة أيام","لا كفارة","إطعام ستين مسكيناً"],answer:1},
+            {q:"كم نصاب الإبل لوجوب الزكاة؟",options:["٣","٥","١٠","٢٠"],answer:1},
+            {q:"ما حكم الوتر عند الحنفية؟",options:["سنة مؤكدة","واجب","فرض","مستحب"],answer:1},
+            {q:"ما مقدار صدقة الفطر بالكيلو تقريباً؟",options:["١.٥ كجم","٢.٥ كجم تقريباً","٣.٥ كجم","٥ كجم"],answer:1},
+            {q:"ما أركان الحج الأربعة عند الجمهور؟",options:["الإحرام والطواف والسعي والوقوف بعرفة","الإحرام والوقوف ورمي الجمار والحلق","الطواف والسعي والمبيت بمنى والرمي","الوقوف والمبيت بمزدلفة والطواف والسعي"],answer:0},
+            {q:"ما حكم صيام يوم الشك (٣٠ شعبان)؟",options:["واجب","مستحب","منهي عنه إلا لمن وافق عادة","مباح مطلقاً"],answer:2},
+            {q:"ما الفرق بين القصر والجمع في الصلاة؟",options:["القصر: تقصير الرباعية لركعتين. الجمع: جمع صلاتين في وقت إحداهما","هما نفس الشيء","القصر في الحضر والجمع في السفر","لا يجوز الجمع"],answer:0},
+            {q:"ما صلاة الخوف؟ متى تُشرع؟",options:["صلاة عند الكسوف","صلاة تُؤدى في حال الحرب بهيئة خاصة ذُكرت في القرآن","صلاة عند الزلازل","صلاة نافلة عند الخوف"],answer:1},
+            {q:"ما الاستحاضة وما حكم صاحبتها؟",options:["هي الحيض نفسه","دم يخرج في غير وقت الحيض وتتوضأ لكل صلاة","نزيف يمنع الصلاة","دم النفاس"],answer:1},
+            {q:"ما هي مبطلات الصيام المتفق عليها؟",options:["الأكل والشرب والجماع عمداً","النوم والكلام","المشي والعمل","الوضوء والاغتسال"],answer:0},
+            {q:"ما حكم من مات وعليه صيام واجب؟",options:["يسقط عنه","يصوم عنه وليه أو يطعم","يقضيه عنه أي مسلم","لا شيء"],answer:1},
+            {q:"ما هي صلاة التسابيح؟ وما حكمها؟",options:["صلاة واجبة","صلاة مستحبة عند بعض العلماء وضعيفة عند آخرين","صلاة محرمة","صلاة العيد"],answer:1},
+            {q:"ما هو سجود التلاوة؟ وهل هو واجب؟",options:["واجب عند كل سجدة","سنة مؤكدة عند الجمهور","فرض كفاية","مكروه"],answer:1},
+            {q:"ما حكم الاشتراك في الأضحية؟",options:["لا يجوز مطلقاً","يجوز في البقرة والبدنة لسبعة","يجوز في الشاة لاثنين","يجوز في كل الأنعام"],answer:1},
+            {q:"ما هي أيام البيض وما حكم صيامها؟",options:["١٣ و١٤ و١٥ من كل شهر هجري — سنة مستحبة","أول ثلاثة أيام من الشهر","آخر ثلاثة أيام","أيام الجمعة"],answer:0},
+            {q:"ما حكم من ترك ركناً من أركان الصلاة سهواً؟",options:["يسجد للسهو فقط","يأتي بالركن والركعة كاملة ويسجد للسهو","صلاته باطلة مطلقاً","لا شيء عليه"],answer:1},
+            {q:"ما حكم زكاة الحلي المُعد للاستعمال؟",options:["واجبة عند الجميع","لا زكاة عند الجمهور وتجب عند الحنفية","مستحبة","لا خلاف فيها"],answer:1},
+        ]
+    }
+},
+history: {
+    name:"التاريخ الإسلامي", icon:"🏛️", description:"أسئلة عن التاريخ والحضارة الإسلامية",
+    questions: {
+        easy: [
+            {q:"من فتح القسطنطينية؟",options:["صلاح الدين","محمد الفاتح","هارون الرشيد","طارق بن زياد"],answer:1},
+            {q:"من قاد فتح الأندلس؟",options:["موسى بن نصير","طارق بن زياد","عقبة بن نافع","خالد بن الوليد"],answer:1},
+            {q:"ما عاصمة الدولة الأموية؟",options:["بغداد","القاهرة","دمشق","المدينة"],answer:2},
+            {q:"ما عاصمة الدولة العباسية؟",options:["دمشق","بغداد","القاهرة","قرطبة"],answer:1},
+            {q:"من مؤسس الدولة الأموية؟",options:["عبد الملك بن مروان","معاوية بن أبي سفيان","يزيد","مروان بن الحكم"],answer:1},
+            {q:"من قاد معركة اليرموك؟",options:["سعد بن أبي وقاص","خالد بن الوليد","عمرو بن العاص","أبو عبيدة"],answer:1},
+            {q:"من قاد معركة القادسية؟",options:["خالد بن الوليد","عمرو بن العاص","سعد بن أبي وقاص","أبو عبيدة"],answer:2},
+            {q:"من بنى بغداد؟",options:["هارون الرشيد","المنصور","المأمون","المعتصم"],answer:1},
+            {q:"من مؤسس الدولة العثمانية؟",options:["محمد الفاتح","عثمان بن أرطغرل","سليمان القانوني","سليم الأول"],answer:1},
+            {q:"من استلم مفاتيح بيت المقدس؟",options:["أبو بكر","عمر بن الخطاب","خالد بن الوليد","عمرو بن العاص"],answer:1},
+            {q:"في عهد أي خليفة فُتحت مصر؟",options:["أبو بكر","عمر بن الخطاب","عثمان","علي"],answer:1},
+            {q:"من مؤسس علم الجبر؟",options:["ابن سينا","الخوارزمي","ابن الهيثم","الرازي"],answer:1},
+            {q:"من قائد المسلمين في معركة عين جالوت؟",options:["صلاح الدين","سيف الدين قطز","بيبرس","نور الدين"],answer:1},
+            {q:"أين وقعت معركة حطين؟",options:["مصر","فلسطين","الشام","العراق"],answer:1},
+            {q:"من هو صلاح الدين الأيوبي؟",options:["مؤسس الدولة العباسية","محرر القدس من الصليبيين","فاتح القسطنطينية","مؤسس الدولة الأموية"],answer:1},
+            {q:"ما اسم الحضارة الإسلامية في إسبانيا؟",options:["الحضارة الأموية","الحضارة الأندلسية","حضارة بغداد","حضارة القاهرة"],answer:1},
+            {q:"من هو صاحب كتاب القانون في الطب؟",options:["الرازي","ابن سينا","ابن النفيس","الزهراوي"],answer:1},
+            {q:"ما المقصود بالخلافة الراشدة؟",options:["حكم الأمويين","حكم أبي بكر وعمر وعثمان وعلي","حكم العباسيين","حكم العثمانيين"],answer:1},
+            {q:"من أول من وضع التقويم الهجري؟",options:["النبي ﷺ","أبو بكر","عمر بن الخطاب","عثمان"],answer:2},
+            {q:"ما هي دار الأرقم؟",options:["مسجد","دار كان يجتمع فيها المسلمون سراً في مكة","قصر","سوق"],answer:1},
+        ],
+        medium: [
+            {q:"في أي معركة انتصر صلاح الدين انتصاراً حاسماً على الصليبيين؟",options:["عين جالوت","حطين","اليرموك","القادسية"],answer:1},
+            {q:"متى كان الإسراء والمعراج تقريباً؟",options:["قبل الهجرة بعام","قبل الهجرة بثلاث سنوات","بعد الهجرة","قبل البعثة"],answer:0},
+            {q:"ما أول جامعة في العالم الإسلامي؟",options:["الأزهر","جامعة القرويين","المستنصرية","النظامية"],answer:1},
+            {q:"متى سقطت غرناطة؟",options:["١٤٥٣ م","١٤٩٢ م","١٥٠٠ م","١٣٨٠ م"],answer:1},
+            {q:"في أي عام فُتح بيت المقدس لأول مرة؟",options:["١٣ هـ","١٥ هـ","١٦ هـ","٢٠ هـ"],answer:2},
+            {q:"من فتح شمال أفريقيا ووصل المحيط الأطلسي؟",options:["خالد بن الوليد","عقبة بن نافع","طارق بن زياد","موسى بن نصير"],answer:1},
+            {q:"من قاد المسلمين في معركة الزلاقة؟",options:["صلاح الدين","يوسف بن تاشفين","طارق بن زياد","محمد الفاتح"],answer:1},
+            {q:"متى فُتحت القسطنطينية؟",options:["١٤٥٣ م","١٤٩٢ م","١٥١٧ م","١٤٠٠ م"],answer:0},
+            {q:"من الخليفة العباسي المعروف بالعصر الذهبي؟",options:["المنصور","هارون الرشيد","المأمون","المعتصم"],answer:1},
+            {q:"أين كانت معركة الزلاقة؟",options:["المغرب","الأندلس","مصر","الشام"],answer:1},
+            {q:"من هو المعتصم؟ وبماذا اشتهر؟",options:["خليفة عباسي فتح عمورية نجدةً لامرأة مسلمة","مؤسس الدولة العباسية","آخر خليفة عباسي","قائد عسكري أموي"],answer:0},
+            {q:"ما هو بيت الحكمة؟",options:["مسجد في بغداد","مركز علمي للترجمة والعلوم في بغداد","قصر الخليفة","مكتبة في دمشق"],answer:1},
+            {q:"في أي قارة فتح المسلمون الأندلس؟",options:["آسيا","أفريقيا","أوروبا","أمريكا"],answer:2},
+            {q:"من هو أول من عبر مضيق جبل طارق؟",options:["موسى بن نصير","طارق بن زياد","عقبة بن نافع","حسان بن النعمان"],answer:1},
+            {q:"ما اسم المضيق الذي سُمي باسم قائد مسلم؟",options:["مضيق هرمز","مضيق جبل طارق","مضيق باب المندب","مضيق ملقا"],answer:1},
+            {q:"كم دام حكم الخلفاء الراشدين تقريباً؟",options:["١٠ سنوات","٢٠ سنة","٣٠ سنة","٥٠ سنة"],answer:2},
+            {q:"من الخليفة الأموي الذي بنى قبة الصخرة؟",options:["معاوية","عبد الملك بن مروان","الوليد بن عبد الملك","عمر بن عبد العزيز"],answer:1},
+            {q:"من هو عمر بن عبد العزيز؟ ولماذا لُقب بخامس الخلفاء الراشدين؟",options:["خليفة أموي عُرف بعدله وزهده","مؤسس الدولة العباسية","قائد عسكري","عالم فقيه"],answer:0},
+            {q:"ما هي حروب الردة؟ في عهد من كانت؟",options:["حروب في عهد عمر","حروب في عهد أبي بكر ضد من ارتد عن الإسلام","حروب في عهد عثمان","حروب في عهد علي"],answer:1},
+            {q:"من هو أول خليفة أموي في الأندلس؟",options:["عبد الرحمن الداخل (صقر قريش)","عبد الرحمن الناصر","هشام بن عبد الملك","طارق بن زياد"],answer:0},
+        ],
+        hard: [
+            {q:"من فتح السند (باكستان)؟",options:["محمد بن القاسم الثقفي","قتيبة بن مسلم","موسى بن نصير","طارق بن زياد"],answer:0},
+            {q:"من اكتشف الدورة الدموية الصغرى؟",options:["ابن سينا","الرازي","ابن النفيس","الزهراوي"],answer:2},
+            {q:"ما المعركة التي أنهت الدولة الأموية في المشرق؟",options:["الزاب","صفين","الجمل","مرج دابق"],answer:0},
+            {q:"من أسس بيت الحكمة ومن وسّعه؟",options:["هارون ووسعه المأمون","المنصور فقط","المأمون فقط","المعتصم"],answer:0},
+            {q:"من مؤسس الدولة الأيوبية؟",options:["نور الدين زنكي","صلاح الدين الأيوبي","الملك العادل","الملك الكامل"],answer:1},
+            {q:"في أي عام سقطت بغداد على يد المغول؟",options:["١٢٥٨ م","١١٨٧ م","١٤٥٣ م","١٣٠٠ م"],answer:0},
+            {q:"من آخر خلفاء العباسيين في بغداد؟",options:["المستعصم بالله","المعتصم","المتوكل","الناصر"],answer:0},
+            {q:"ما اسم القائد المغولي الذي اجتاح بغداد؟",options:["جنكيز خان","هولاكو","تيمورلنك","باتو خان"],answer:1},
+            {q:"من السلطان العثماني الذي فتح مصر والشام؟",options:["محمد الفاتح","سليمان القانوني","سليم الأول","بايزيد الثاني"],answer:2},
+            {q:"في أي معركة هُزم المغول لأول مرة هزيمة حاسمة؟",options:["حطين","عين جالوت","الزلاقة","مرج دابق"],answer:1},
+            {q:"ما هي دولة المرابطين؟ أين نشأت؟",options:["المغرب الأقصى وموريتانيا","مصر","الشام","الحجاز"],answer:0},
+            {q:"من مؤسس دولة الموحدين؟",options:["يوسف بن تاشفين","محمد بن تومرت (وعبد المؤمن بن علي)","صلاح الدين","طارق بن زياد"],answer:1},
+            {q:"من هو قتيبة بن مسلم وماذا فتح؟",options:["قائد فتح بلاد ما وراء النهر (آسيا الوسطى)","فاتح مصر","فاتح الأندلس","فاتح السند"],answer:0},
+            {q:"ما هي معركة بلاط الشهداء (تور/بواتييه)؟",options:["معركة أوقفت تقدم المسلمين في فرنسا ٧٣٢م","معركة في الأندلس","معركة بحرية","معركة ضد المغول"],answer:0},
+            {q:"من هو عبد الرحمن الغافقي؟",options:["خليفة أموي","قائد المسلمين في معركة بلاط الشهداء","عالم فقيه","مؤسس الدولة العباسية"],answer:1},
+            {q:"من هو الحسن البصري وما دوره في التاريخ الإسلامي؟",options:["قائد عسكري","تابعي عالم ومفسر وواعظ كبير","صحابي","خليفة"],answer:1},
+            {q:"ما هي الفتنة الكبرى في التاريخ الإسلامي؟",options:["الخلاف بعد مقتل عثمان بن عفان","حروب الردة","سقوط بغداد","الحروب الصليبية"],answer:0},
+            {q:"ما هي معركة صفين؟ بين من كانت؟",options:["بين المسلمين والفرس","بين علي ومعاوية","بين المسلمين والروم","بين الأمويين والعباسيين"],answer:1},
+            {q:"من هو حسان بن النعمان؟ وماذا فعل؟",options:["فتح تونس وقرطاج","فتح الأندلس","فتح مصر","فتح السند"],answer:0},
+            {q:"ما هي معركة ذات الصواري؟",options:["معركة برية ضد الفرس","أول معركة بحرية كبرى في الإسلام ضد البيزنطيين","معركة ضد المغول","معركة في الأندلس"],answer:1},
+        ],
+        expert: [
+            {q:"ما نظام المِلل العثماني؟",options:["نظام عسكري","نظام يمنح الطوائف الدينية حكماً ذاتياً محدوداً","نظام ضريبي","نظام تعليمي"],answer:1},
+            {q:"من وضع أسس علم البصريات؟",options:["ابن سينا","الخوارزمي","ابن الهيثم","البيروني"],answer:2},
+            {q:"ما الجزية؟",options:["الخراج","ضريبة يدفعها غير المسلمين مقابل الحماية","العشور","الزكاة"],answer:1},
+            {q:"من هو البيروني؟",options:["عالم رياضيات وفلك وجغرافيا","قائد عسكري","شاعر","فقيه"],answer:0},
+            {q:"من أنشأ أول أسطول بحري إسلامي؟",options:["عمر","معاوية في عهد عثمان","صلاح الدين","العباسيون"],answer:1},
+            {q:"من مؤسس علم الاجتماع؟",options:["الفارابي","ابن خلدون","ابن رشد","الغزالي"],answer:1},
+            {q:"ما اسم كتاب ابن خلدون الشهير؟",options:["البداية والنهاية","المقدمة (كتاب العبر)","تاريخ الأمم والملوك","الكامل في التاريخ"],answer:1},
+            {q:"ما نظام الدوشرمة العثماني؟",options:["نظام ضرائب","نظام تجنيد أطفال المسيحيين وتدريبهم كإنكشاريين","نظام تعليمي","نظام قضائي"],answer:1},
+            {q:"متى أُلغيت الخلافة العثمانية رسمياً؟",options:["١٩١٨","١٩٢٢","١٩٢٤","١٩٣٠"],answer:2},
+            {q:"من هو الجزري؟",options:["عالم فلك","مخترع ومهندس ميكانيكي (أبو الروبوتات)","طبيب","فقيه"],answer:1},
+            {q:"من هو الإدريسي؟ بماذا اشتهر؟",options:["عالم جغرافي رسم أدق خريطة في العصور الوسطى","طبيب","قائد عسكري","فقيه"],answer:0},
+            {q:"ما اسم كتاب الطبري الشهير في التاريخ؟",options:["تاريخ الأمم والملوك","المقدمة","البداية والنهاية","الكامل في التاريخ"],answer:0},
+            {q:"من هو ابن بطوطة وبماذا اشتهر؟",options:["رحالة مغربي طاف العالم الإسلامي ووصف رحلاته","عالم فلك","قائد عسكري","فقيه حنفي"],answer:0},
+            {q:"ما اسم الحملات العسكرية المسيحية على الشرق الإسلامي؟ كم دامت تقريباً؟",options:["الحروب الصليبية — حوالي ٢٠٠ سنة","الفتوحات — ١٠٠ سنة","الحروب البيزنطية — ٥٠ سنة","حروب الاسترداد — ٣٠٠ سنة"],answer:0},
+            {q:"من هو الزهراوي؟ بماذا اشتهر؟",options:["أبو الجراحة — طبيب أندلسي كتب التصريف لمن عجز عن التأليف","عالم فلك","عالم كيمياء","مؤرخ"],answer:0},
+            {q:"ما هو نظام الوقف الإسلامي؟",options:["نظام ضريبي","تخصيص أموال أو عقارات للإنفاق على أعمال الخير بشكل دائم","نظام عسكري","نظام قضائي"],answer:1},
+            {q:"من أول من استخدم البارود في الحروب من المسلمين؟",options:["المماليك","العثمانيون","الأندلسيون","المغول المسلمون"],answer:0},
+            {q:"ما هو الفرق بين الخراج والجزية؟",options:["الخراج على الأرض والجزية على الأشخاص","هما نفس الشيء","الجزية على الأرض والخراج على الأشخاص","كلاهما على الأشخاص"],answer:0},
+            {q:"من هو ابن رشد؟ ولماذا يُعتبر مهماً في تاريخ الفلسفة؟",options:["فيلسوف أندلسي شرح أرسطو وأثّر في الفكر الأوروبي","قائد عسكري","عالم كيمياء","شاعر"],answer:0},
+            {q:"ما هي مكتبة قرطبة في الأندلس وكم عدد كتبها تقريباً؟",options:["١٠ آلاف","١٠٠ ألف","٤٠٠ ألف مجلد","مليون"],answer:2},
+        ]
+    }
+}
+};
+
+// ===================== GAME STATE =====================
+const playerColors = ['#2ecc71','#3498db','#e67e22','#9b59b6'];
+const diffLabels = {easy:"سهل",medium:"متوسط",hard:"صعب",expert:"خبير"};
+const diffClasses = {easy:"diff-easy",medium:"diff-medium",hard:"diff-hard",expert:"diff-expert"};
+
+let state = {
+    playerCount: 2, players: [], selectedCategories: [], baseTimeLimit: 25,
+    currentPlayerIndex: 0, currentQuestionIndex: 0, currentLevel: 0,
+    levelQuestions: [], levelCorrectCount: 0, levelQuestionsDone: 0,
+    timer: null, timeLeft: 0, answered: false, gameOver: false,
+    usedQuestions: new Set()
+};
+
+// ===================== INIT =====================
+function init() {
+    renderPlayerInputs();
+    renderCategories();
+    document.querySelectorAll('.count-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.playerCount = parseInt(btn.dataset.count);
+            renderPlayerInputs();
+        });
+    });
+}
+
+function renderPlayerInputs() {
+    const c = document.getElementById('playerInputs'); c.innerHTML = '';
+    const labels = ['اللاعب الأول','اللاعب الثاني','اللاعب الثالث','اللاعب الرابع'];
+    for (let i = 0; i < state.playerCount; i++) {
+        const row = document.createElement('div'); row.className = 'player-input-row';
+        row.innerHTML = `<div class="player-avatar">${i+1}</div><input type="text" placeholder="${labels[i]}" id="player${i}" maxlength="20">`;
+        c.appendChild(row);
+    }
+}
+
+function renderCategories() {
+    const grid = document.getElementById('categoriesGrid'); grid.innerHTML = '';
+    Object.entries(questionsDB).forEach(([key, cat]) => {
+        const card = document.createElement('div'); card.className = 'category-card'; card.dataset.category = key;
+        card.innerHTML = `<span class="category-icon">${cat.icon}</span><h3>${cat.name}</h3><p>${cat.description}</p>`;
+        card.addEventListener('click', () => toggleCategory(card, key));
+        grid.appendChild(card);
+    });
+}
+
+function toggleCategory(card, key) {
+    card.classList.toggle('selected');
+    const idx = state.selectedCategories.indexOf(key);
+    if (idx > -1) state.selectedCategories.splice(idx, 1); else state.selectedCategories.push(key);
+    document.getElementById('btnPlay').disabled = state.selectedCategories.length === 0;
+}
+
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+function goToCategories() {
+    state.players = [];
+    for (let i = 0; i < state.playerCount; i++) {
+        const input = document.getElementById(`player${i}`);
+        state.players.push({name: input.value.trim() || `لاعب ${i+1}`, score:0, correct:0, wrong:0, levelReached:1});
+    }
+    state.baseTimeLimit = parseInt(document.getElementById('timeLimit').value);
+    showScreen('categoryScreen');
+}
+
+// ===================== LEVEL SYSTEM =====================
+function startGame() {
+    state.currentLevel = 0;
+    state.currentPlayerIndex = 0;
+    state.gameOver = false;
+    state.usedQuestions = new Set();
+    state.players.forEach(p => {p.score=0;p.correct=0;p.wrong=0;p.levelReached=1;});
+    showLevelIntro();
+}
+
+function showLevelIntro() {
+    const level = LEVELS[state.currentLevel];
+    const starsHTML = Array.from({length:10},(_,i) => `<span class="diff-star ${i<level.stars?'':'empty'}">⭐</span>`).join('');
+    const timeForLevel = getTimeForLevel();
+    const timeText = timeForLevel > 0 ? `${timeForLevel} ثانية` : 'بدون وقت';
+    document.getElementById('levelIntroContent').innerHTML = `
+        <span class="level-number">المرحلة ${state.currentLevel+1}</span>
+        <h2 class="level-title">${level.name}</h2>
+        <div class="level-difficulty">${starsHTML}</div>
+        <p class="level-desc">${level.desc}</p>
+        <div class="level-info-chips">
+            <div class="level-chip">📝 <span>${level.questionsCount}</span> أسئلة</div>
+            <div class="level-chip">⏱ <span>${timeText}</span></div>
+            <div class="level-chip">💎 <span>${level.pointsPerQ}</span> نقطة/سؤال</div>
+            <div class="level-chip">✅ مطلوب <span>${level.minCorrectPercent}%</span> للتأهل</div>
+        </div>
+        <button class="btn-play" onclick="startLevel()" style="max-width:300px;margin:20px auto 0;display:block;">ابدأ المرحلة ▶</button>`;
+    showScreen('levelIntroScreen');
+}
+
+function getTimeForLevel() {
+    if (state.baseTimeLimit === 0) return 0;
+    const reduction = Math.floor(state.currentLevel * 1.5);
+    return Math.max(8, state.baseTimeLimit - reduction);
+}
+
+function getQuestionHash(q) {
+    return q.q;
+}
+
+function startLevel() {
+    const level = LEVELS[state.currentLevel];
+    const diff = level.diff;
+    let pool = [];
+
+    state.selectedCategories.forEach(cat => {
+        const qs = questionsDB[cat].questions[diff] || [];
+        qs.forEach(q => {
+            const hash = getQuestionHash(q);
+            if (!state.usedQuestions.has(hash)) {
+                pool.push({...q, category: questionsDB[cat].name, diff, _hash: hash});
+            }
+        });
+    });
+
+    shuffle(pool);
+    state.levelQuestions = pool.slice(0, level.questionsCount);
+
+    state.levelQuestions.forEach(q => state.usedQuestions.add(q._hash));
+
+    if (state.levelQuestions.length === 0) { showResults(); return; }
+
+    state.currentQuestionIndex = 0;
+    state.levelCorrectCount = 0;
+    state.levelQuestionsDone = 0;
+    showScreen('gameScreen');
+    renderScoresBar();
+    showQuestion();
+}
+
+// ===================== GAME LOGIC =====================
+function showQuestion() {
+    state.answered = false;
+    const q = state.levelQuestions[state.currentQuestionIndex];
+    const player = state.players[state.currentPlayerIndex];
+    const level = LEVELS[state.currentLevel];
+
+    document.getElementById('currentPlayerDot').style.background = playerColors[state.currentPlayerIndex];
+    document.getElementById('currentPlayerName').textContent = player.name;
+    document.getElementById('questionCounter').textContent = `سؤال ${state.currentQuestionIndex+1} من ${state.levelQuestions.length}`;
+    document.getElementById('levelBadge').textContent = `المرحلة ${state.currentLevel+1} — ${level.name}`;
+    const pct = (state.currentQuestionIndex / state.levelQuestions.length) * 100;
+    document.getElementById('levelProgressFill').style.width = pct + '%';
+    document.getElementById('levelProgressText').textContent = `${state.currentQuestionIndex}/${state.levelQuestions.length}`;
+    document.getElementById('progressBar').style.width = `${((state.currentLevel*10 + pct/10)/100)*100}%`;
+    document.getElementById('questionCategory').textContent = q.category;
+    const dt = document.getElementById('difficultyTag');
+    dt.textContent = diffLabels[q.diff]; dt.className = 'difficulty-tag ' + diffClasses[q.diff];
+    document.getElementById('questionText').textContent = q.q;
+    document.getElementById('answerFeedback').innerHTML = '';
+
+    const grid = document.getElementById('optionsGrid'); grid.innerHTML = '';
+    const letters = ['أ','ب','ج','د'];
+    q.options.forEach((opt, i) => {
+        const btn = document.createElement('button'); btn.className = 'option-btn';
+        btn.innerHTML = `<span class="option-letter">${letters[i]}</span> ${opt}`;
+        btn.addEventListener('click', () => selectAnswer(i));
+        grid.appendChild(btn);
+    });
+
+    const timeForLevel = getTimeForLevel();
+    if (timeForLevel > 0) {
+        state.timeLeft = timeForLevel;
+        document.getElementById('timerDisplay').style.display = 'flex';
+        document.getElementById('timerValue').textContent = state.timeLeft;
+        document.getElementById('timerDisplay').classList.remove('warning');
+        clearInterval(state.timer);
+        state.timer = setInterval(() => {
+            state.timeLeft--;
+            document.getElementById('timerValue').textContent = state.timeLeft;
+            if (state.timeLeft <= 5 && state.timeLeft > 0) document.getElementById('timerDisplay').classList.add('warning');
+            if (state.timeLeft <= 0) { clearInterval(state.timer); timeUp(); }
+        }, 1000);
+    } else { document.getElementById('timerDisplay').style.display = 'none'; }
+}
+
+function selectAnswer(index) {
+    if (state.answered) return;
+    state.answered = true; clearInterval(state.timer);
+    const q = state.levelQuestions[state.currentQuestionIndex];
+    const level = LEVELS[state.currentLevel];
+    const buttons = document.querySelectorAll('.option-btn');
+    buttons.forEach(b => b.classList.add('disabled'));
+    buttons[q.answer].classList.add('correct');
+
+    if (index === q.answer) {
+        buttons[index].classList.add('correct');
+        const bonus = getTimeForLevel() > 0 ? Math.ceil(state.timeLeft * (level.timeBonus || 1)) : 0;
+        const points = level.pointsPerQ + bonus;
+        state.players[state.currentPlayerIndex].score += points;
+        state.players[state.currentPlayerIndex].correct++;
+        state.levelCorrectCount++;
+        document.getElementById('answerFeedback').innerHTML = `<span class="feedback-text correct">✅ إجابة صحيحة! +${points} نقطة</span>`;
+    } else {
+        buttons[index].classList.add('wrong');
+        state.players[state.currentPlayerIndex].wrong++;
+        document.getElementById('answerFeedback').innerHTML = `<span class="feedback-text wrong">❌ إجابة خاطئة</span><span class="feedback-detail">الإجابة الصحيحة: ${q.options[q.answer]}</span>`;
+    }
+    state.levelQuestionsDone++;
+    renderScoresBar();
+    setTimeout(nextQuestion, 2200);
+}
+
+function timeUp() {
+    if (state.answered) return;
+    state.answered = true;
+    const q = state.levelQuestions[state.currentQuestionIndex];
+    const buttons = document.querySelectorAll('.option-btn');
+    buttons.forEach(b => b.classList.add('disabled'));
+    buttons[q.answer].classList.add('correct');
+    state.players[state.currentPlayerIndex].wrong++;
+    state.levelQuestionsDone++;
+    document.getElementById('answerFeedback').innerHTML = `<span class="feedback-text timeout">⏰ انتهى الوقت!</span><span class="feedback-detail">الإجابة الصحيحة: ${q.options[q.answer]}</span>`;
+    renderScoresBar();
+    setTimeout(nextQuestion, 2200);
+}
+
+function nextQuestion() {
+    state.currentQuestionIndex++;
+    if (state.currentQuestionIndex >= state.levelQuestions.length) { showLevelComplete(); return; }
+    state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
+    showQuestion();
+}
+
+function renderScoresBar() {
+    const bar = document.getElementById('scoresBar'); bar.innerHTML = '';
+    state.players.forEach((p, i) => {
+        const chip = document.createElement('div'); chip.className = 'score-chip';
+        chip.innerHTML = `<div class="score-chip-dot" style="background:${playerColors[i]}"></div><span class="score-chip-name">${p.name}</span><span class="score-chip-points">${p.score}</span>`;
+        bar.appendChild(chip);
+    });
+}
+
+// ===================== LEVEL COMPLETE =====================
+function showLevelComplete() {
+    clearInterval(state.timer);
+    const level = LEVELS[state.currentLevel];
+    const total = state.levelQuestions.length;
+    const correctPct = total > 0 ? Math.round((state.levelCorrectCount / total) * 100) : 0;
+    const passed = correctPct >= level.minCorrectPercent;
+    if (passed) state.players.forEach(p => p.levelReached = state.currentLevel + 2);
+    const isLastLevel = state.currentLevel >= LEVELS.length - 1;
+
+    let html = `<div class="level-complete-box">
+        <span class="level-complete-icon">${passed ? (isLastLevel ? '👑' : '🎉') : '😔'}</span>
+        <h3 class="level-complete-title">${passed ? (isLastLevel ? 'أكملت جميع المراحل!' : `اجتزت المرحلة ${state.currentLevel+1}!`) : `لم تجتز المرحلة ${state.currentLevel+1}`}</h3>
+        <div class="level-complete-stats">
+            الإجابات الصحيحة: <strong>${state.levelCorrectCount}</strong> من <strong>${total}</strong><br>
+            النسبة: <strong>${correctPct}%</strong> — المطلوب: <strong>${level.minCorrectPercent}%</strong>
+        </div>`;
+
+    if (passed && !isLastLevel) html += `<button class="btn-next-level" onclick="goNextLevel()">المرحلة التالية ➡</button>`;
+    else if (passed && isLastLevel) html += `<button class="btn-next-level" onclick="showResults()">النتائج النهائية 🏆</button>`;
+    else html += `<button class="btn-next-level" onclick="retryLevel()">أعد المرحلة 🔄</button><br><button class="btn-retry-level" onclick="showResults()">إنهاء المسابقة</button>`;
+    html += '</div>';
+
+    const overlay = document.createElement('div');
+    overlay.className = 'level-complete-overlay'; overlay.id = 'levelOverlay'; overlay.innerHTML = html;
+    document.body.appendChild(overlay);
+    if (passed) createConfetti();
+}
+
+function removeOverlay() { const o = document.getElementById('levelOverlay'); if (o) o.remove(); }
+
+function goNextLevel() { removeOverlay(); state.currentLevel++; showLevelIntro(); }
+
+function retryLevel() {
+    removeOverlay();
+    state.levelQuestions.forEach(q => state.usedQuestions.delete(q._hash));
+    showLevelIntro();
+}
+
+// ===================== RESULTS =====================
+function showResults() {
+    removeOverlay(); clearInterval(state.timer);
+    const sorted = [...state.players].sort((a,b) => b.score - a.score);
+    const isTie = sorted.length > 1 && sorted[0].score === sorted[1].score;
+    document.getElementById('winnerName').textContent = isTie ? 'تعادل! 🤝' : `🎉 الفائز: ${sorted[0].name}`;
+    const table = document.getElementById('resultsTable'); table.innerHTML = '';
+    sorted.forEach((p, i) => {
+        const total = p.correct + p.wrong;
+        const pct = total > 0 ? Math.round((p.correct/total)*100) : 0;
+        const row = document.createElement('div');
+        row.className = `results-row ${i===0?'first':''}`;
+        row.innerHTML = `
+            <div class="rank-badge rank-${i+1}">${['🥇','🥈','🥉','4'][i]||i+1}</div>
+            <div class="results-player-info">
+                <div class="results-player-name">${p.name}</div>
+                <div class="results-player-stats">${p.correct} صحيحة · ${p.wrong} خاطئة · ${pct}%</div>
+                <div class="results-level-reached">وصل إلى: المرحلة ${Math.min(p.levelReached,10)} — ${LEVELS[Math.min(p.levelReached,10)-1].name}</div>
+            </div>
+            <div class="results-score">${p.score}</div>`;
+        table.appendChild(row);
+    });
+    showScreen('resultsScreen');
+    if (!isTie) createConfetti();
+}
+
+function createConfetti() {
+    const colors = ['#2ecc71','#3498db','#e67e22','#9b59b6','#d4a843','#e74c3c','#1abc9c'];
+    for (let i = 0; i < 60; i++) {
+        const piece = document.createElement('div'); piece.className = 'confetti-piece';
+        piece.style.left = Math.random()*100+'%';
+        piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+        piece.style.width = (Math.random()*8+5)+'px'; piece.style.height = (Math.random()*8+5)+'px';
+        piece.style.borderRadius = Math.random()>0.5?'50%':'2px';
+        piece.style.animation = `confetti ${Math.random()*2+2}s linear ${Math.random()}s`;
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 4000);
+    }
+}
+
+function restartSameSettings() { startGame(); }
+function newGame() {
+    state.selectedCategories = [];
+    document.querySelectorAll('.category-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('btnPlay').disabled = true;
+    showScreen('startScreen');
+}
+
+function shuffle(arr) {
+    for (let i = arr.length-1; i > 0; i--) {
+        const j = Math.floor(Math.random()*(i+1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+}
+
+init();
+</script>
+</body>
+</html>
